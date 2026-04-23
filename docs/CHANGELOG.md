@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.4 · 2026-04-23 · Why CQ Signal is different
+
+- New section added to Getting Started: "Why CQ Signal is different." Seven concrete differentiators vs existing business data tools: AI-native architecture, data portability, prescriptive analysis, business-owner framing (not agency-only), white-label included, honesty about limitations, modern design. Sits between the mission and the technical setup.
+
 ## v0.5.3 · 2026-04-23 · Mission-forward Getting Started and Vision
 
 - Getting Started rewritten as the welcoming entry point for new readers. Adds sections: What CQ Signal is, How it works, Who it is for, Best use cases, and Our mission and why we built this. The mission section is Daniel's story in first person, matching the voice he uses when introducing the product.

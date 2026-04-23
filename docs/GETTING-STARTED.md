@@ -50,6 +50,24 @@ That is what CQ Signal is. An agency owner built it for other agency owners and 
 
 If that resonates, welcome.
 
+## Why CQ Signal is different
+
+The business data space is full of tools that put numbers on a page. Here is what sets Signal apart.
+
+**Designed around AI, not bolted onto it.** Every other reporting tool started as a dashboard and later added an "Ask AI" feature as a tier upgrade. Signal was architected from the first commit with AI as the primary consumption layer. Chat on every page, markdown export on every business, MCP server coming for direct agent access. Your AI is a first-class user, not a feature.
+
+**Your data stays yours.** Other tools trap data inside their platform. Signal does the opposite. Every view exports as a ready-to-paste markdown brief with suggested prompts. REST API and MCP server are coming so Claude Code, Gemini, or a custom agent can query your business live. If you want your data in your own warehouse, grab the JSON and go.
+
+**Prescriptive, not just descriptive.** "Sessions dropped 12%" is descriptive. "Your direct traffic fell 18%, organic held, double down on the blog content that drove 30% of new visitors last month" is prescriptive. Signal pushes toward the second kind of answer. If it cannot tell you what to do, it will not pretend.
+
+**Built for business owners, not just agencies.** Most reporting tools assume an agency managing clients. Signal works for one business or a hundred, for a solo owner or a full agency. The product says "business" everywhere, and the architecture treats single-business and multi-business use identically.
+
+**White-label included.** Every generated report carries the business's own logo, colors, and brand. Not gated behind a top tier. Table stakes for anyone delivering reports to clients or stakeholders.
+
+**Honest about what it does not know.** Signal flags when data is incomplete, when an integration is stale, or when a question is outside what the numbers can answer. That honesty is what makes its recommendations trustworthy.
+
+**A modern product, not a 2015 dashboard.** Fast, responsive, mobile-friendly, dark-mode native, designed with typography and motion that feels intentional. Open it on any device and it looks like it was built this decade, because it was.
+
 ## Running locally
 
 ### Prerequisites
