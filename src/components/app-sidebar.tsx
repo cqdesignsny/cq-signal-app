@@ -35,13 +35,21 @@ export function AppSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2 px-1 py-1.5">
+        <Link href="/" className="flex items-center gap-2 px-1 py-1">
           <Image
-            src="/CQ-Signal-Logo.png"
+            src="/cq-signal-logo.png"
             alt="CQ Signal"
-            width={140}
-            height={36}
-            className="h-7 w-auto object-contain dark:invert"
+            width={200}
+            height={170}
+            className="block h-10 w-auto max-w-[170px] object-contain object-left dark:hidden"
+            priority
+          />
+          <Image
+            src="/cq-signal-logo-dark.png"
+            alt="CQ Signal"
+            width={200}
+            height={170}
+            className="hidden h-10 w-auto max-w-[170px] object-contain object-left dark:block"
             priority
           />
         </Link>

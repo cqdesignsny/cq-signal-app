@@ -30,41 +30,45 @@ export default async function BusinessPage({ params }: Props) {
   if (!business) notFound();
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_360px]">
-      <div className="min-w-0 space-y-12">
-        <header className="space-y-3">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+    <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_380px]">
+      <div className="min-w-0 space-y-14">
+        <header className="space-y-4">
+          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
             Business · {business.vertical}
           </p>
-          <h1 className="font-display text-4xl tracking-tight md:text-5xl">
+          <h1 className="font-display text-5xl tracking-tight md:text-7xl">
             {business.name}
           </h1>
-          <p className="max-w-xl text-sm text-muted-foreground">{business.tagline}</p>
+          <p className="max-w-2xl text-base text-muted-foreground md:text-lg">
+            {business.tagline}
+          </p>
         </header>
 
-        <section className="space-y-5">
+        <section className="space-y-6">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="font-display text-xl text-muted-foreground">
+            <h2 className="font-display text-2xl text-muted-foreground md:text-3xl">
               This week at a glance
             </h2>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            <p className="hidden font-mono text-[11px] uppercase tracking-widest text-muted-foreground sm:block">
               Placeholder · Connect data to populate
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {placeholderMetrics.map((m) => (
-              <Card key={m.label} size="sm">
+              <Card key={m.label}>
                 <CardHeader className="gap-1">
-                  <CardDescription className="font-mono text-[10px] uppercase tracking-widest">
+                  <CardDescription className="font-mono text-[11px] uppercase tracking-widest">
                     {m.source}
                   </CardDescription>
-                  <CardTitle className="font-sans text-sm font-normal text-muted-foreground">
+                  <CardTitle className="font-sans text-base font-normal text-muted-foreground">
                     {m.label}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="mono-nums text-3xl text-foreground">{m.value}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Awaiting data</p>
+                  <p className="mono-nums text-5xl leading-none text-foreground md:text-6xl">
+                    {m.value}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">Awaiting data</p>
                 </CardContent>
               </Card>
             ))}
@@ -72,7 +76,7 @@ export default async function BusinessPage({ params }: Props) {
         </section>
 
         <section className="space-y-4">
-          <h2 className="font-display text-xl text-muted-foreground">
+          <h2 className="font-display text-2xl text-muted-foreground md:text-3xl">
             Connected integrations
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -80,13 +84,13 @@ export default async function BusinessPage({ params }: Props) {
               <Badge
                 key={key}
                 variant="outline"
-                className="font-mono text-[10px] uppercase tracking-wide"
+                className="font-mono text-[11px] uppercase tracking-wide"
               >
                 {integrationLabels[key] ?? key}
               </Badge>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Integration wiring lands next. Tomorrow's HVOF report uses manual or CSV input through the same dashboard shape.
           </p>
         </section>

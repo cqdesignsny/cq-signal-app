@@ -60,7 +60,7 @@ export const businesses: Business[] = [
     shortName: "TZ",
     tagline: "Electrical contractor",
     vertical: "Home services",
-    integrations: ["ga4", "meta-ads", "google-ads"],
+    integrations: ["ga4", "meta-ads", "google-ads", "housecall-pro"],
   },
   {
     slug: "level-aesthetics",
