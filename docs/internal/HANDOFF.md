@@ -16,7 +16,7 @@ CQ Signal is a marketing reporting and analytics platform built AI-first. It giv
 
 ## Current state
 
-**Version:** v0.5.2 (docs public/internal split, 30% font bump for accessibility, interactive card lifts, brand-tinted scrollbars)
+**Version:** v0.5.3 (mission-forward Getting Started + Vision expansion)
 **Last commit SHA:** update this when you commit
 **Last updated:** 2026-04-23
 
@@ -81,6 +81,7 @@ Version history in [../CHANGELOG.md](../CHANGELOG.md). High level:
 - **v0.5 (docs foundation).** README + strategic docs, in-app `/docs` site rendering the markdown files, security headers, chat voice refined to Signal personality.
 - **v0.5.1.** Handoff doc created, Insights page restored after accidental removal.
 - **v0.5.2.** Public/internal docs split (public at `/docs`, internal at `docs/internal/`). Docs content + nav font sizes bumped 30% for readability. Main sidebar nav labels bumped. Dramatic card-lift hover with brand-tinted shadows. Themed scrollbars, brand-colored focus rings and selection, link underline animation utility.
+- **v0.5.3.** Getting Started rewritten as welcoming entry point with sections: What CQ Signal is, How it works, Who it is for, Best use cases, and Our mission and why we built this (Daniel's story in first person). Vision gets Mission statement and Why this exists section at the top.
 
 ## Key decisions and constraints
 

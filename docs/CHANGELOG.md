@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.3 · 2026-04-23 · Mission-forward Getting Started and Vision
+
+- Getting Started rewritten as the welcoming entry point for new readers. Adds sections: What CQ Signal is, How it works, Who it is for, Best use cases, and Our mission and why we built this. The mission section is Daniel's story in first person, matching the voice he uses when introducing the product.
+- Vision gets a new Mission statement and a Why this exists section at the top, so strategic readers see the purpose before the positioning analysis.
+- Both docs now cross-link cleanly so the human path (Getting Started) and the strategic path (Vision) complement each other.
+
 ## v0.5.2 · 2026-04-23 · Docs split, font bump, interactive polish
 
 - **Public vs internal docs split.** Public docs (Getting Started, Vision, Markdown Exports, REST API, MCP Server, Chat API, Integrations, Security, Changelog) render in the in-app `/docs` site. Internal docs (Handoff, Architecture, Decisions) moved to `docs/internal/` and are not rendered or linked from the public UI. They stay in the repo for Daniel and any contributor picking up the project.
