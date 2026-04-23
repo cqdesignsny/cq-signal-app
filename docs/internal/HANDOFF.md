@@ -2,13 +2,13 @@
 
 Read this first if you are a new session, a different LLM (Codex, Gemini, another Claude), or a human picking up this project after a break. Everything you need to continue is here or linked.
 
-**This file is intentionally NOT rendered in the public `/docs` site.** It lives at `docs/internal/HANDOFF.md` along with ARCHITECTURE and DECISIONS. Only Daniel and contributors see it. Keep it that way.
+**This file is intentionally NOT rendered in the public `/docs` site.** It lives at `docs/internal/HANDOFF.md` along with ARCHITECTURE and DECISIONS. Only Cesar Augustus and contributors see it. Keep it that way.
 
 ## What this is
 
 CQ Signal is a marketing reporting and analytics platform built AI-first. It gives business owners and agency operators a clean dashboard for their marketing performance, plus the ability to export every view as a Markdown brief or query it via a (coming) MCP server, so their own AI agents can analyze the data directly.
 
-**Owner:** Daniel. Runs CQ (Creative Quality Marketing, creativequalitymarketing.com). Building this for his agency's internal use first, then SaaS later.
+**Owner:** Cesar Augustus. Runs CQ (Creative Quality Marketing, creativequalitymarketing.com). Building this for his agency's internal use first, then SaaS later.
 
 **Live:** [cq-signal-app.vercel.app](https://cq-signal-app.vercel.app)
 **Repo:** [github.com/cqdesignsny/cq-signal-app](https://github.com/cqdesignsny/cq-signal-app)
@@ -30,9 +30,9 @@ All UI surfaces are built. Chat works (streams Claude via AI Gateway). Markdown 
 
 ## Immediate next task
 
-Begin the real HVOF push. Plan locked in with Daniel.
+Begin the real HVOF push. Plan locked in with Cesar Augustus.
 
-**User-side (Daniel's work, parallel with coding):**
+**User-side (Cesar Augustus's work, parallel with coding):**
 
 1. Provision Neon Postgres via Vercel Marketplace (5 min). Needs `DATABASE_URL`.
 2. Provision Vercel Blob (2 min). Needs `BLOB_READ_WRITE_TOKEN`.
@@ -81,7 +81,7 @@ Version history in [../CHANGELOG.md](../CHANGELOG.md). High level:
 - **v0.5 (docs foundation).** README + strategic docs, in-app `/docs` site rendering the markdown files, security headers, chat voice refined to Signal personality.
 - **v0.5.1.** Handoff doc created, Insights page restored after accidental removal.
 - **v0.5.2.** Public/internal docs split (public at `/docs`, internal at `docs/internal/`). Docs content + nav font sizes bumped 30% for readability. Main sidebar nav labels bumped. Dramatic card-lift hover with brand-tinted shadows. Themed scrollbars, brand-colored focus rings and selection, link underline animation utility.
-- **v0.5.3.** Getting Started rewritten as welcoming entry point with sections: What CQ Signal is, How it works, Who it is for, Best use cases, and Our mission and why we built this (Daniel's story in first person). Vision gets Mission statement and Why this exists section at the top.
+- **v0.5.3.** Getting Started rewritten as welcoming entry point with sections: What CQ Signal is, How it works, Who it is for, Best use cases, and Our mission and why we built this (Cesar Augustus's story in first person). Vision gets Mission statement and Why this exists section at the top.
 - **v0.5.4.** Getting Started gains "Why CQ Signal is different" section with seven concrete differentiators: AI-native architecture, data portability, prescriptive analysis, business-owner framing, white-label included, honesty about limitations, modern design.
 
 ## Key decisions and constraints
@@ -105,7 +105,7 @@ Critical to apply at every AI-producing surface (chat, briefs, PDF narratives, e
 - No AI filler phrases.
 - No "as an AI" hedging.
 - Signal's voice is conversational, direct, witty, analytical. Uses analogies. Pushes back when users are making a bad call.
-- Daniel speaks plainly and confidently. Match that.
+- Cesar Augustus speaks plainly and confidently. Match that.
 
 Full detail: `src/app/api/chat/route.ts` system prompt, plus `feedback_chat_voice.md` memory.
 
@@ -152,7 +152,7 @@ Every session that commits code must update this file:
 1. Update **Current state**: version, last commit SHA, timestamp.
 2. Update **In progress** with what's actively being worked on or "Nothing active" if between tasks.
 3. Update **Immediate next task** with the concrete next step.
-4. Update **Pending user actions** if blocked on Daniel for setup.
+4. Update **Pending user actions** if blocked on Cesar Augustus for setup.
 5. Update **What's shipped** when a new version lands.
 
 Keep it tight. Write so a cold reader can pick up without needing back-channel context.

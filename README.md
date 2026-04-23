@@ -15,7 +15,7 @@ It connects to the platforms your business uses (analytics, ads, email, social, 
 
 ## Status
 
-Internal tool for CQ (Creative Quality Marketing) while we ship features. Built by Daniel and Claude together. Private while we iterate.
+Internal tool for CQ (Creative Quality Marketing) while we ship features. Built by Cesar Augustus and Claude together. Private while we iterate.
 
 **Live:** [cq-signal-app.vercel.app](https://cq-signal-app.vercel.app)
 **Repo:** [github.com/cqdesignsny/cq-signal-app](https://github.com/cqdesignsny/cq-signal-app)
@@ -54,7 +54,7 @@ Opens at `http://localhost:3000`.
 
 ## Internal docs (not rendered in-app)
 
-For Daniel and any LLM/session continuing the build:
+For Cesar Augustus and any LLM/session continuing the build:
 
 - [HANDOFF.md](docs/internal/HANDOFF.md) — current state, pending work, next step. Read first.
 - [ARCHITECTURE.md](docs/internal/ARCHITECTURE.md) — stack, data model, internal directory layout.
@@ -62,4 +62,4 @@ For Daniel and any LLM/session continuing the build:
 
 ## Contact
 
-Daniel · CQ · `cqdesignsny@gmail.com`
+Cesar Augustus · CQ · `cqdesignsny@gmail.com`
