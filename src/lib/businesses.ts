@@ -4,6 +4,8 @@ export type Integration =
   | "meta-ads"
   | "facebook"
   | "instagram"
+  | "linkedin"
+  | "tiktok"
   | "shopify"
   | "klaviyo"
   | "omnisend"
@@ -19,6 +21,8 @@ export const integrationLabels: Record<Integration, string> = {
   "meta-ads": "Meta Ads",
   "facebook": "Facebook",
   "instagram": "Instagram",
+  "linkedin": "LinkedIn",
+  "tiktok": "TikTok",
   "shopify": "Shopify",
   "klaviyo": "Klaviyo",
   "omnisend": "Omnisend",
@@ -140,6 +144,24 @@ export const channelCards: Record<Integration, ChannelConfig> = {
     label: "Instagram",
     source: "Instagram",
     primary: { label: "Followers", value: "—" },
+    secondary: [
+      { label: "Posts", value: "—" },
+      { label: "Engagement", value: "—" },
+    ],
+  },
+  "linkedin": {
+    label: "LinkedIn",
+    source: "LinkedIn",
+    primary: { label: "Posts this week", value: "—" },
+    secondary: [
+      { label: "Reactions", value: "—" },
+      { label: "Followers", value: "—" },
+    ],
+  },
+  "tiktok": {
+    label: "TikTok",
+    source: "TikTok",
+    primary: { label: "Views", value: "—" },
     secondary: [
       { label: "Posts", value: "—" },
       { label: "Engagement", value: "—" },
@@ -275,6 +297,28 @@ export const channelDetails: Record<
       { title: "Top posts + reels", description: "Best performing content by reach and engagement." },
       { title: "Stories", description: "Completion rate, taps forward, replies." },
       { title: "Audience demographics", description: "Age, gender, top cities, active times." },
+    ],
+  },
+  "linkedin": {
+    title: "LinkedIn",
+    description: "Company page posts, reactions, follower growth, and audience mix. Where B2B signal lives.",
+    sections: [
+      { title: "Post reach + engagement", description: "How each post performed organically." },
+      { title: "Reactions breakdown", description: "Likes, celebrates, supports, insightful, loves." },
+      { title: "Follower growth", description: "Net followers per period with industry and seniority mix." },
+      { title: "Top posts", description: "Best performing posts with engagement rate." },
+      { title: "Company page visits", description: "Visitor count, traffic sources, peak hours." },
+    ],
+  },
+  "tiktok": {
+    title: "TikTok",
+    description: "Video performance, follower growth, and audience insights. TikTok Shop data when the shop is connected.",
+    sections: [
+      { title: "Video performance", description: "Views, likes, shares, comments per post." },
+      { title: "Top videos", description: "Best performing videos this period." },
+      { title: "Follower growth", description: "New followers and retention." },
+      { title: "Audience demographics", description: "Age, gender, top regions, active times." },
+      { title: "TikTok Shop", description: "Product views, add-to-carts, orders, revenue — when shop is connected." },
     ],
   },
   "shopify": {

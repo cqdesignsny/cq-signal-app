@@ -6,6 +6,7 @@ import { channelCards, getBusiness } from "@/lib/businesses";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChatPanel } from "@/components/chat-panel";
+import { ExportForAiMenu } from "@/components/export-for-ai-menu";
 import { ShareReportMenu } from "@/components/share-report-menu";
 import { TimeRangeTabs } from "@/components/time-range-tabs";
 
@@ -35,13 +36,17 @@ export default async function BusinessPage({ params }: Props) {
             <h1 className="font-display text-5xl tracking-tight md:text-7xl">
               {business.name}
             </h1>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button asChild variant="outline" size="sm" className="gap-1.5">
                 <Link href={`/businesses/${business.slug}/profile`}>
                   <Settings2 className="size-3.5" />
                   Edit profile
                 </Link>
               </Button>
+              <ExportForAiMenu
+                businessSlug={business.slug}
+                businessName={business.name}
+              />
               <ShareReportMenu businessName={business.name} />
             </div>
           </div>
