@@ -18,6 +18,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { SidebarThemeToggle } from "@/components/sidebar-theme-toggle";
 import { businesses } from "@/lib/businesses";
 
 const navItems = [
@@ -115,9 +116,11 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="px-1 py-1 text-[11px] leading-tight text-muted-foreground">
-          <div className="font-display text-sm text-foreground">CQ Signal</div>
-          <div>Internal build · v0.1</div>
+        <SidebarThemeToggle />
+        <div className="px-2 pb-1 text-[11px] leading-tight text-muted-foreground">
+          <span className="font-display text-foreground">CQ Signal</span>
+          <span className="mx-1.5">·</span>
+          <span>Internal · v0.3</span>
         </div>
       </SidebarFooter>
     </Sidebar>

@@ -4,11 +4,10 @@ import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export function TopBar() {
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur-md lg:px-6">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border/60 px-4 glass lg:px-6">
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mx-1 h-4" />
       <div className="font-display text-base text-muted-foreground">
@@ -26,7 +25,6 @@ export function TopBar() {
             ⌘K
           </kbd>
         </Button>
-        <ThemeToggle />
       </div>
     </header>
   );
