@@ -28,13 +28,13 @@ export default function OverviewPage() {
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {businesses.map((b, i) => (
           <Link key={b.slug} href={`/businesses/${b.slug}`} className="group">
-            <Card className="h-full transition-shadow group-hover:ring-foreground/25">
+            <Card className="card-lift h-full group-hover:ring-brand/45 group-hover:ring-2">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                  <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground transition-colors group-hover:text-brand">
                     {String(i + 1).padStart(2, "0")}
                   </p>
-                  <ArrowUpRight className="size-5 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
+                  <ArrowUpRight className="size-5 text-muted-foreground transition-all duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-brand" />
                 </div>
                 <CardTitle className="font-display text-2xl leading-tight">
                   {b.name}

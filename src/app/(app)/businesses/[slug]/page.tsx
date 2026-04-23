@@ -72,13 +72,13 @@ export default async function BusinessPage({ params }: Props) {
                   href={`/businesses/${business.slug}/${key}`}
                   className="group"
                 >
-                  <Card className="h-full transition-all duration-200 hover:-translate-y-0.5 hover:ring-foreground/30">
+                  <Card className="card-lift h-full group-hover:ring-2 group-hover:ring-brand/45">
                     <CardHeader className="gap-1">
                       <div className="flex items-center justify-between">
-                        <CardDescription className="font-mono text-[11px] uppercase tracking-widest">
+                        <CardDescription className="font-mono text-[11px] uppercase tracking-widest transition-colors group-hover:text-brand">
                           {config.source}
                         </CardDescription>
-                        <ArrowUpRight className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 group-hover:text-foreground" />
+                        <ArrowUpRight className="size-4 text-muted-foreground opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand group-hover:opacity-100" />
                       </div>
                       <CardTitle className="font-sans text-base font-normal text-muted-foreground">
                         {config.primary.label}

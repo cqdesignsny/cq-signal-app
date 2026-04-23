@@ -1,43 +1,51 @@
 # Changelog
 
+## v0.5.2 · 2026-04-23 · Docs split, font bump, interactive polish
+
+- **Public vs internal docs split.** Public docs (Getting Started, Vision, Markdown Exports, REST API, MCP Server, Chat API, Integrations, Security, Changelog) render in the in-app `/docs` site. Internal docs (Handoff, Architecture, Decisions) moved to `docs/internal/` and are not rendered or linked from the public UI. They stay in the repo for Daniel and any contributor picking up the project.
+- **Font sizes bumped 30% for readability.** Docs content: body text `text-lg`, headings stepped up, code and tables larger. Docs sub-nav items bumped. Main sidebar nav items given `h-10` and `text-base`, business list items `text-[15px]`, icon sizes up slightly.
+- **Interactive card lifts.** New `.card-lift` utility: cards lift 4px on hover with a brand-tinted shadow bloom and a 2px brand ring. Accent colors shift from muted to brand on hover. Press state snaps back in 120ms.
+- **Themed scrollbars.** Brand-tinted on hover, thin, rounded. Works on Firefox (`scrollbar-color`) and WebKit.
+- **Brand selection and focus rings.** Text selection uses brand-red alpha. Keyboard focus shows a brand outline.
+- **Link underline animation utility.** `.link-underline` class for animated underline effects where we want them.
+
 ## v0.5.1 · 2026-04-23 · Handoff doc and Insights restored
 
-- **Handoff doc** at [docs/HANDOFF.md](HANDOFF.md). Single source of truth for any new session, LLM, or contributor picking up the project. Kept up to date at every commit per the explicit maintenance rule.
-- Insights restored as a real placeholder page at `/insights`. Designed, not a dead link. Shows the shape of future weekly briefs, anomaly alerts, cross-business signals, and the brief archive.
-- Main sidebar restored to four nav items: Overview, Insights, Docs, Settings.
-- README and in-app docs index both link HANDOFF first.
+- Handoff doc at `docs/HANDOFF.md` (later moved to `docs/internal/HANDOFF.md` in v0.5.2).
+- Insights restored as a real placeholder page at `/insights`.
+- Main sidebar restored to Overview, Insights, Docs, Settings.
 
 ## v0.5 · 2026-04-23 · Docs foundation and security baseline
 
-- Full documentation set: [README](../README.md), [VISION](VISION.md), [ARCHITECTURE](ARCHITECTURE.md), [SECURITY](SECURITY.md), [DECISIONS](DECISIONS.md), this changelog, plus developer refs GETTING-STARTED, MARKDOWN-EXPORTS, REST-API, MCP-SERVER, CHAT-API, INTEGRATIONS.
-- In-app `/docs` site rendering the same markdown with react-markdown + remark-gfm. Sub-sidebar with section grouping.
+- Full documentation set: README, VISION, ARCHITECTURE, SECURITY, DECISIONS, CHANGELOG, plus developer refs GETTING-STARTED, MARKDOWN-EXPORTS, REST-API, MCP-SERVER, CHAT-API, INTEGRATIONS.
+- In-app `/docs` site rendering the same markdown with react-markdown and remark-gfm. Sub-sidebar with section grouping.
 - Security headers configured in `next.config.ts`: HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy.
-- Chat system prompt rewritten to Signal's voice: conversational, witty, analogy-heavy, pushes back, zero AI slop. No em dashes, no emojis, no filler.
+- Chat system prompt rewritten to Signal's voice: conversational, witty, analogy-heavy, pushes back, zero AI slop.
 
 ## v0.4 · 2026-04-23 · AI-ready
 
 - Upgraded Signal chat to analyst voice.
-- New markdown export endpoint: `/api/businesses/[slug]/export?format=md&range=7d|1m|3m|1y`.
-- Export for AI dropdown on every business page (download, copy to clipboard, connect agent).
+- Markdown export endpoint: `/api/businesses/[slug]/export?format=md&range=7d|1m|3m|1y`.
+- Export for AI dropdown on every business page.
 - Agents & AI settings page documenting markdown briefs, REST API (preview), MCP server (coming).
-- LinkedIn and TikTok added to the integration catalog with drill-in structures.
+- LinkedIn and TikTok added to the integration catalog.
 
 ## v0.3 · 2026-04-23 · App-like polish
 
-- Theme-aware gradient background (warm brand and signal glows).
+- Theme-aware gradient background.
 - Glass utility for top bar and hero surfaces.
 - Theme toggle moved to sidebar footer as a segmented control.
 - Meta split into Meta Ads, Facebook (organic), Instagram (organic).
-- Channel-based hero cards with primary + secondary metrics.
+- Channel-based hero cards with primary and secondary metrics.
 - Channel drill-in pages at `/businesses/[slug]/[channel]`.
-- Time range tabs (7d / 1m / 3m / 1y + compare vs prior).
-- Share Report dropdown (PDF, Email, Link marked Soon).
-- Business profile editor skeleton at `/businesses/[slug]/profile`.
+- Time range tabs with compare-vs-prior toggle.
+- Share Report dropdown.
+- Business profile editor skeleton.
 
 ## v0.2 · 2026-04-23 · Polish pass
 
-- Logo auto-cropped to tight bounds. Generated a dark-mode variant.
-- Optimized PNGs from 1.4MB to ~34KB each.
+- Logo auto-cropped to tight bounds and a dark-mode variant generated.
+- PNGs optimized from 1.4MB to ~34KB each.
 - Typography scaled up 30 to 50 percent across display and metric surfaces.
 - TZ Electric: HouseCall Pro integration added.
 - Fixed logo filename case for Linux filesystem compatibility on Vercel.
@@ -45,10 +53,10 @@
 ## v0.1 · 2026-04-23 · Scaffold
 
 - Next.js 16 App Router, TypeScript strict, Tailwind v4, React Compiler.
-- shadcn/ui on Radix, custom CQ Signal theme (warm paper, ink, brand red, signal amber).
+- shadcn/ui on Radix, custom CQ Signal theme.
 - Geist Sans + Geist Mono + Instrument Serif.
 - App shell: collapsible sidebar, top bar, responsive layout.
 - Pages: overview, business detail, add-business placeholder, settings.
 - Ask Signal: streaming chat via AI SDK v6 + Claude Sonnet 4.6.
 - Seeded businesses: Hudson Valley Office Furniture, TZ Electric, Level Aesthetics, Advanced Skin Med Spa, Wrecktified Paint and Collision.
-- Deployed: cq-signal-app.vercel.app, auto-deploying from github.com/cqdesignsny/cq-signal-app.
+- Deployed to cq-signal-app.vercel.app, auto-deploying from github.com/cqdesignsny/cq-signal-app.

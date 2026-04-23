@@ -63,9 +63,13 @@ export function AppSidebar() {
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton asChild isActive={isActive(item.href, item.exact)}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.href, item.exact)}
+                    className="h-10 text-base"
+                  >
                     <Link href={item.href}>
-                      <item.icon />
+                      <item.icon className="size-[18px]" />
                       <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -78,7 +82,7 @@ export function AppSidebar() {
         <SidebarSeparator />
 
         <SidebarGroup>
-          <SidebarGroupLabel className="font-mono text-[10px] uppercase tracking-widest">
+          <SidebarGroupLabel className="font-mono text-xs uppercase tracking-widest">
             Businesses
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -88,9 +92,9 @@ export function AppSidebar() {
                 const initials = (b.shortName ?? b.name).slice(0, 2).toUpperCase();
                 return (
                   <SidebarMenuItem key={b.slug}>
-                    <SidebarMenuButton asChild isActive={active}>
+                    <SidebarMenuButton asChild isActive={active} className="h-10 text-[15px]">
                       <Link href={`/businesses/${b.slug}`}>
-                        <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-muted text-[10px] font-semibold text-muted-foreground group-data-[active=true]/menu-item:bg-brand/10 group-data-[active=true]/menu-item:text-brand">
+                        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-muted text-[11px] font-semibold text-muted-foreground group-data-[active=true]/menu-item:bg-brand/10 group-data-[active=true]/menu-item:text-brand">
                           {initials}
                         </span>
                         <span className="truncate">{b.shortName ?? b.name}</span>
@@ -102,11 +106,11 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  className="text-muted-foreground"
+                  className="h-10 text-[15px] text-muted-foreground"
                   isActive={pathname === "/businesses/new"}
                 >
                   <Link href="/businesses/new">
-                    <Plus />
+                    <Plus className="size-[18px]" />
                     <span>Add Business</span>
                   </Link>
                 </SidebarMenuButton>

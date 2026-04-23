@@ -110,7 +110,7 @@ export default function InsightsPage() {
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {businesses.map((b) => (
             <Link key={b.slug} href={`/businesses/${b.slug}`} className="group">
-              <Card className="h-full transition-all hover:-translate-y-0.5 hover:ring-foreground/25">
+              <Card className="card-lift h-full group-hover:ring-2 group-hover:ring-brand/45">
                 <CardHeader className="gap-1">
                   <div className="flex items-start justify-between">
                     <CardDescription className="font-mono text-[11px] uppercase tracking-widest">

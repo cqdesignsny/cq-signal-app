@@ -9,12 +9,12 @@ export function DocsNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="space-y-6 text-sm">
+    <nav className="space-y-7 text-base">
       <div>
         <Link
           href="/docs"
           className={cn(
-            "block py-1 font-mono text-[11px] uppercase tracking-widest transition-colors",
+            "block py-1 font-mono text-xs uppercase tracking-widest transition-colors",
             pathname === "/docs"
               ? "text-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -24,11 +24,11 @@ export function DocsNav() {
         </Link>
       </div>
       {docsSections.map((section) => (
-        <div key={section.title} className="space-y-1.5">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+        <div key={section.title} className="space-y-2">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
             {section.title}
           </p>
-          <ul className="space-y-0.5">
+          <ul className="space-y-1">
             {section.items.map((item) => {
               const href = `/docs/${item.slug}`;
               const isActive = pathname === href;
@@ -37,7 +37,7 @@ export function DocsNav() {
                   <Link
                     href={href}
                     className={cn(
-                      "-mx-2 block rounded-md px-2 py-1 transition-colors",
+                      "-mx-2 block rounded-md px-2 py-1.5 text-[15px] leading-relaxed transition-colors",
                       isActive
                         ? "bg-muted font-medium text-foreground"
                         : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",

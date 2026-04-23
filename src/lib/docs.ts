@@ -13,18 +13,8 @@ export const docsSections: DocSection[] = [
   {
     title: "Start here",
     items: [
-      { slug: "handoff", title: "Handoff (read first)", file: "HANDOFF.md" },
       { slug: "getting-started", title: "Getting started", file: "GETTING-STARTED.md" },
       { slug: "vision", title: "Vision", file: "VISION.md" },
-      { slug: "changelog", title: "Changelog", file: "CHANGELOG.md" },
-    ],
-  },
-  {
-    title: "Concepts",
-    items: [
-      { slug: "architecture", title: "Architecture", file: "ARCHITECTURE.md" },
-      { slug: "security", title: "Security", file: "SECURITY.md" },
-      { slug: "decisions", title: "Decision log", file: "DECISIONS.md" },
     ],
   },
   {
@@ -40,6 +30,8 @@ export const docsSections: DocSection[] = [
     title: "Reference",
     items: [
       { slug: "integrations", title: "Integration catalog", file: "INTEGRATIONS.md" },
+      { slug: "security", title: "Security", file: "SECURITY.md" },
+      { slug: "changelog", title: "Changelog", file: "CHANGELOG.md" },
     ],
   },
 ];

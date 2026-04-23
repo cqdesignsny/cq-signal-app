@@ -1,6 +1,6 @@
 # CQ Signal
 
-> **If you are a new session or a different LLM (Codex, Gemini, another Claude) picking this up:** read [docs/HANDOFF.md](docs/HANDOFF.md) first. That doc is the single source of truth for current state, pending work, and the next step.
+> **If you are a new session or a different LLM (Codex, Gemini, another Claude) picking this up:** read [docs/internal/HANDOFF.md](docs/internal/HANDOFF.md) first. That doc is the single source of truth for current state, pending work, and the next step.
 
 Marketing intelligence and actionable insights for the businesses you care about. Built AI-first: your data flows cleanly into your own agents, not just our dashboards.
 
@@ -29,8 +29,6 @@ Internal tool for CQ (Creative Quality Marketing) while we ship features. Built 
 - Claude Sonnet 4.6 via the `anthropic/claude-sonnet-4.6` model string
 - Planned: Neon Postgres, Vercel Blob, Clerk auth, Upstash Redis
 
-Full architecture notes: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
 ## Running locally
 
 ```bash
@@ -42,57 +40,25 @@ pnpm dev
 
 Opens at `http://localhost:3000`.
 
-## Directory layout
+## Public docs (rendered in-app at `/docs`)
 
-```
-cq-signal/
-├── src/
-│   ├── app/
-│   │   ├── (app)/              logged-in shell (sidebar + topbar)
-│   │   │   ├── page.tsx                       portfolio overview
-│   │   │   ├── insights/                      portfolio insights (placeholder)
-│   │   │   ├── docs/                          in-app developer docs
-│   │   │   ├── businesses/[slug]/             business detail + drill-ins + profile
-│   │   │   └── settings/                      preferences + agents docs
-│   │   ├── api/
-│   │   │   ├── chat/                          streaming chat endpoint
-│   │   │   └── businesses/[slug]/export/      MD / JSON export
-│   │   ├── layout.tsx                         root: fonts + providers
-│   │   └── globals.css                        theme tokens + gradient + glass
-│   ├── components/
-│   │   ├── ui/                                shadcn primitives
-│   │   ├── app-sidebar.tsx
-│   │   ├── chat-panel.tsx
-│   │   ├── export-for-ai-menu.tsx
-│   │   ├── share-report-menu.tsx
-│   │   ├── sidebar-theme-toggle.tsx
-│   │   ├── time-range-tabs.tsx
-│   │   ├── business-profile-form.tsx
-│   │   ├── docs-nav.tsx
-│   │   └── docs-content.tsx
-│   └── lib/
-│       ├── businesses.ts                      seed data + integration catalog
-│       ├── md-export.ts                       markdown brief generator
-│       ├── docs.ts                            client-safe docs registry
-│       ├── docs-server.ts                     server-only fs loader
-│       └── utils.ts                           cn helper
-├── docs/                                       handoff, vision, architecture, security, dev refs
-├── public/                                     logos + static
-└── package.json
-```
+- [Getting started](docs/GETTING-STARTED.md)
+- [Vision](docs/VISION.md)
+- [Markdown exports](docs/MARKDOWN-EXPORTS.md)
+- [REST API](docs/REST-API.md)
+- [MCP server](docs/MCP-SERVER.md)
+- [Chat API](docs/CHAT-API.md)
+- [Integration catalog](docs/INTEGRATIONS.md)
+- [Security](docs/SECURITY.md)
+- [Changelog](docs/CHANGELOG.md)
 
-## Docs
+## Internal docs (not rendered in-app)
 
-Read in this order if you are new to the project:
+For Daniel and any LLM/session continuing the build:
 
-1. [HANDOFF.md](docs/HANDOFF.md) — current state, pending tasks, next step. Read first.
-2. [VISION.md](docs/VISION.md) — product vision and competitive positioning.
-3. [ARCHITECTURE.md](docs/ARCHITECTURE.md) — stack, data model, trade-offs.
-4. [SECURITY.md](docs/SECURITY.md) — threat model and practices.
-5. [DECISIONS.md](docs/DECISIONS.md) — decision log (the project's memory).
-6. [CHANGELOG.md](docs/CHANGELOG.md) — what shipped when.
-
-Developer references: [GETTING-STARTED](docs/GETTING-STARTED.md), [MARKDOWN-EXPORTS](docs/MARKDOWN-EXPORTS.md), [REST-API](docs/REST-API.md), [MCP-SERVER](docs/MCP-SERVER.md), [CHAT-API](docs/CHAT-API.md), [INTEGRATIONS](docs/INTEGRATIONS.md).
+- [HANDOFF.md](docs/internal/HANDOFF.md) — current state, pending work, next step. Read first.
+- [ARCHITECTURE.md](docs/internal/ARCHITECTURE.md) — stack, data model, internal directory layout.
+- [DECISIONS.md](docs/internal/DECISIONS.md) — chronological decision log.
 
 ## Contact
 
