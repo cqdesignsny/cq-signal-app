@@ -100,11 +100,12 @@ function renderChannel(key: Integration): string[] {
   if (!card) return [];
   return [
     `### ${card.label} — ${card.source}`,
+    card.sourceDescription ? `*${card.sourceDescription}*` : "",
     ``,
     `- **${card.primary.label}:** ${card.primary.value} *(vs prior period: —)*`,
     ...card.secondary.map((s) => `- **${s.label}:** ${s.value} *(vs prior period: —)*`),
     ``,
     `*Live ${card.source} integration pending. Values populate once connected.*`,
     ``,
-  ];
+  ].filter((line, i) => !(i === 1 && line === ""));
 }

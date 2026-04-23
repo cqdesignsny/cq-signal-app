@@ -73,12 +73,19 @@ export default async function BusinessPage({ params }: Props) {
                   className="group"
                 >
                   <Card className="card-lift h-full group-hover:ring-2 group-hover:ring-brand/45">
-                    <CardHeader className="gap-1">
-                      <div className="flex items-center justify-between">
-                        <CardDescription className="font-mono text-[11px] uppercase tracking-widest transition-colors group-hover:text-brand">
-                          {config.source}
-                        </CardDescription>
-                        <ArrowUpRight className="size-4 text-muted-foreground opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand group-hover:opacity-100" />
+                    <CardHeader className="gap-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 space-y-0.5">
+                          <CardDescription className="font-mono text-[11px] uppercase tracking-widest transition-colors group-hover:text-brand">
+                            {config.source}
+                          </CardDescription>
+                          {config.sourceDescription ? (
+                            <p className="text-[11px] leading-tight text-muted-foreground/75">
+                              {config.sourceDescription}
+                            </p>
+                          ) : null}
+                        </div>
+                        <ArrowUpRight className="size-4 shrink-0 text-muted-foreground opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand group-hover:opacity-100" />
                       </div>
                       <CardTitle className="font-sans text-base font-normal text-muted-foreground">
                         {config.primary.label}

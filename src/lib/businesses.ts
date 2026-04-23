@@ -16,7 +16,7 @@ export type Integration =
   | "housecall-pro";
 
 export const integrationLabels: Record<Integration, string> = {
-  "ga4": "Google Analytics 4",
+  "ga4": "Google Analytics",
   "google-ads": "Google Ads",
   "meta-ads": "Meta Ads",
   "facebook": "Facebook",
@@ -54,6 +54,7 @@ export const businesses: Business[] = [
       "meta-ads",
       "facebook",
       "instagram",
+      "linkedin",
       "omnisend",
       "typeform",
     ],
@@ -64,7 +65,7 @@ export const businesses: Business[] = [
     shortName: "TZ",
     tagline: "Electrical contractor",
     vertical: "Home services",
-    integrations: ["ga4", "meta-ads", "google-ads", "housecall-pro"],
+    integrations: ["ga4", "meta-ads", "google-ads", "linkedin", "housecall-pro"],
   },
   {
     slug: "level-aesthetics",
@@ -99,6 +100,7 @@ export function getBusiness(slug: string): Business | undefined {
 type ChannelConfig = {
   label: string;
   source: string;
+  sourceDescription?: string;
   primary: { label: string; value: string };
   secondary: { label: string; value: string }[];
 };
@@ -106,7 +108,8 @@ type ChannelConfig = {
 export const channelCards: Record<Integration, ChannelConfig> = {
   "ga4": {
     label: "Website",
-    source: "GA4",
+    source: "Google Analytics",
+    sourceDescription: "Website analytics (GA4)",
     primary: { label: "Sessions", value: "—" },
     secondary: [
       { label: "Top landing", value: "—" },
@@ -116,6 +119,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "google-ads": {
     label: "Google Ads",
     source: "Google Ads",
+    sourceDescription: "Paid search ads",
     primary: { label: "Ad spend", value: "$—" },
     secondary: [
       { label: "CPC", value: "$—" },
@@ -125,6 +129,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "meta-ads": {
     label: "Meta Ads",
     source: "Meta Ads",
+    sourceDescription: "Facebook + Instagram paid ads",
     primary: { label: "Ad spend", value: "$—" },
     secondary: [
       { label: "Leads", value: "—" },
@@ -134,6 +139,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "facebook": {
     label: "Facebook",
     source: "Facebook",
+    sourceDescription: "Organic page posts",
     primary: { label: "Posts this week", value: "—" },
     secondary: [
       { label: "Engagement", value: "—" },
@@ -143,6 +149,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "instagram": {
     label: "Instagram",
     source: "Instagram",
+    sourceDescription: "Organic posts + reels",
     primary: { label: "Followers", value: "—" },
     secondary: [
       { label: "Posts", value: "—" },
@@ -152,6 +159,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "linkedin": {
     label: "LinkedIn",
     source: "LinkedIn",
+    sourceDescription: "Organic company page",
     primary: { label: "Posts this week", value: "—" },
     secondary: [
       { label: "Reactions", value: "—" },
@@ -161,6 +169,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "tiktok": {
     label: "TikTok",
     source: "TikTok",
+    sourceDescription: "Organic videos",
     primary: { label: "Views", value: "—" },
     secondary: [
       { label: "Posts", value: "—" },
@@ -170,6 +179,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "shopify": {
     label: "Shopify",
     source: "Shopify",
+    sourceDescription: "Ecommerce store",
     primary: { label: "Revenue", value: "$—" },
     secondary: [
       { label: "Orders", value: "—" },
@@ -179,6 +189,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "klaviyo": {
     label: "Email",
     source: "Klaviyo",
+    sourceDescription: "Email marketing",
     primary: { label: "Open rate", value: "—%" },
     secondary: [
       { label: "CTR", value: "—%" },
@@ -188,6 +199,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "omnisend": {
     label: "Email",
     source: "Omnisend",
+    sourceDescription: "Email marketing",
     primary: { label: "Open rate", value: "—%" },
     secondary: [
       { label: "Click-through", value: "—%" },
@@ -197,6 +209,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "typeform": {
     label: "Leads",
     source: "Typeform",
+    sourceDescription: "Form builder + responses",
     primary: { label: "New leads", value: "—" },
     secondary: [
       { label: "Conversion", value: "—%" },
@@ -206,6 +219,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "vagaro": {
     label: "Bookings",
     source: "Vagaro",
+    sourceDescription: "Booking + scheduling",
     primary: { label: "Appointments", value: "—" },
     secondary: [
       { label: "Revenue", value: "$—" },
@@ -215,6 +229,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "boulevard": {
     label: "Bookings",
     source: "Boulevard",
+    sourceDescription: "Booking + scheduling",
     primary: { label: "Appointments", value: "—" },
     secondary: [
       { label: "Revenue", value: "$—" },
@@ -224,6 +239,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "booksy": {
     label: "Bookings",
     source: "Booksy",
+    sourceDescription: "Booking + scheduling",
     primary: { label: "Appointments", value: "—" },
     secondary: [
       { label: "Revenue", value: "$—" },
@@ -233,6 +249,7 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "housecall-pro": {
     label: "Jobs",
     source: "HouseCall Pro",
+    sourceDescription: "Field service jobs + CRM",
     primary: { label: "Jobs closed", value: "—" },
     secondary: [
       { label: "Revenue", value: "$—" },
@@ -253,7 +270,7 @@ export const channelDetails: Record<
     sections: [
       { title: "Sessions over time", description: "Daily, weekly, and monthly session totals with period-over-period comparison." },
       { title: "Top landing pages", description: "Which pages capture the most entries and their engagement rate." },
-      { title: "Traffic sources", description: "Organic search, direct, referral, social, paid — what's driving traffic." },
+      { title: "Traffic sources", description: "Organic search, direct, referral, social, paid, what's driving traffic." },
       { title: "Top keywords", description: "Best performing queries from Google Search Console." },
       { title: "User flow", description: "How visitors move through the site from landing to conversion." },
       { title: "Device + geo", description: "Desktop vs mobile, top regions, browsers." },
@@ -318,7 +335,7 @@ export const channelDetails: Record<
       { title: "Top videos", description: "Best performing videos this period." },
       { title: "Follower growth", description: "New followers and retention." },
       { title: "Audience demographics", description: "Age, gender, top regions, active times." },
-      { title: "TikTok Shop", description: "Product views, add-to-carts, orders, revenue — when shop is connected." },
+      { title: "TikTok Shop", description: "Product views, add-to-carts, orders, revenue, when shop is connected." },
     ],
   },
   "shopify": {
