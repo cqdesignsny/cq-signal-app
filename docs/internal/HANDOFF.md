@@ -26,7 +26,7 @@ All UI surfaces are built. Chat works (streams Claude via AI Gateway). Markdown 
 
 ## In progress
 
-**Nothing actively coding in this commit.** This commit separated internal docs from public ones, bumped docs font sizes 30% for readability, added dramatic card-lift hover effects with brand-tinted shadows, themed scrollbars, and brand-colored focus rings and text selection.
+Neon Postgres live with 8 tables applied. Credential encryption layer ready via `src/lib/crypto.ts`. Clerk v7 auth is wired end-to-end, protecting all routes except `/sign-in/*` and `/sign-up/*`. Next: Cesar signs up as first user (creates `cq` workspace and owner record automatically via `getOrCreateUser`), then integration OAuth wiring lands starting with GA4.
 
 ## Immediate next task
 
@@ -83,7 +83,9 @@ Version history in [../CHANGELOG.md](../CHANGELOG.md). High level:
 - **v0.5.2.** Public/internal docs split (public at `/docs`, internal at `docs/internal/`). Docs content + nav font sizes bumped 30% for readability. Main sidebar nav labels bumped. Dramatic card-lift hover with brand-tinted shadows. Themed scrollbars, brand-colored focus rings and selection, link underline animation utility.
 - **v0.5.3.** Getting Started rewritten as welcoming entry point with sections: What CQ Signal is, How it works, Who it is for, Best use cases, and Our mission and why we built this (Cesar Augustus's story in first person). Vision gets Mission statement and Why this exists section at the top.
 - **v0.5.4.** Getting Started gains "Why CQ Signal is different" section with seven concrete differentiators: AI-native architecture, data portability, prescriptive analysis, business-owner framing, white-label included, honesty about limitations, modern design.
-- **v0.5.5.** Every public-facing first mention of the agency uses "Creative Quality Marketing" linked to https://creativequalitymarketing.com, with "CQ" introduced as the shorthand. README, Vision, Getting Started, Handoff all updated.
+- **v0.5.5.** Every public-facing first mention of the agency uses "Creative Quality Marketing" linked to https://creativequalitymarketing.com, with "CQ" introduced as the shorthand.
+- **v0.6.0.** Drizzle ORM + Neon serverless driver. Full schema applied: workspaces, users, businesses, integrations, integration_credentials (encrypted), metrics_raw, leads (encrypted PII), reports. AES-256-GCM credential encryption utility at `src/lib/crypto.ts` with master key in `CQ_SIGNAL_SECRET`.
+- **v0.7.0.** Clerk v7 auth end-to-end. `proxy.ts` with route matcher, ClerkProvider wrapping the app, local `/sign-in` and `/sign-up` pages styled with CQ Signal logo, UserButton in top-bar, `getOrCreateUser` helper that auto-creates workspace + owner on first sign-in. Env vars pushed to Vercel.
 
 ## Key decisions and constraints
 

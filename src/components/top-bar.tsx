@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -13,7 +14,7 @@ export function TopBar() {
       <div className="font-display text-base text-muted-foreground">
         Reporting, without the noise.
       </div>
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex items-center gap-3">
         <Button
           variant="ghost"
           size="sm"
@@ -25,6 +26,13 @@ export function TopBar() {
             ⌘K
           </kbd>
         </Button>
+        <UserButton
+          appearance={{
+            elements: {
+              userButtonAvatarBox: "h-8 w-8 ring-1 ring-border",
+            },
+          }}
+        />
       </div>
     </header>
   );

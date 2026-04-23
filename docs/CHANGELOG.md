@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.7.0 · 2026-04-23 · Clerk authentication
+
+- Clerk v7 wired end-to-end following Next.js 16 conventions: `proxy.ts` at `src/proxy.ts` with `clerkMiddleware` and a route matcher that protects everything except `/sign-in/*` and `/sign-up/*`.
+- `ClerkProvider` inside `<body>` in the root layout with `signInUrl` / `signUpUrl` set to our local pages.
+- `src/app/sign-in/[[...sign-in]]/page.tsx` and `sign-up` equivalent, both styled with the CQ Signal logo above and the warm-gradient background inherited from global styles.
+- `UserButton` from `@clerk/nextjs` in the top-bar for sign-out and account management.
+- `src/lib/auth.ts` with `getOrCreateUser` helper. First sign-in auto-creates the CQ workspace and user record in Neon. First user in a workspace gets the `owner` role; everyone after is a `member`.
+- Env vars pushed to Vercel across Production / Preview / Development: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_SIGN_IN_URL`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL`, `CQ_SIGNAL_SECRET`.
+- Verified: unauthenticated requests to `/` or any protected route return a 307 redirect to `/sign-in?redirect_url=...`, and `/sign-in` itself renders Clerk's widget.
+
+## v0.6.0 · 2026-04-23 · Database schema + credential encryption
+
+- Drizzle ORM + `@neondatabase/serverless` + `drizzle-kit` installed.
+- `src/lib/db/schema.ts` defines 8 tables: workspaces, users, businesses, integrations, integration_credentials (encrypted), metrics_raw, leads (with encrypted PII), reports. Indexes and cascade-delete foreign keys where appropriate.
+- First migration generated at `drizzle/0000_previous_vulture.sql` and applied to Neon. All tables live.
+- `src/lib/db/client.ts` with the Neon HTTP driver, `server-only` imported.
+- `db:push`, `db:generate`, `db:migrate`, `db:studio` scripts in `package.json`, all wrapped with `dotenv-cli` for `.env.local` loading.
+- `src/lib/crypto.ts` for AES-256-GCM authenticated encryption of OAuth tokens and API keys at rest. Random 12-byte IV per encryption, 16-byte auth tag, base64 payload. `encrypt` / `decrypt` / `encryptJson` / `decryptJson` helpers.
+- `CQ_SIGNAL_SECRET` env var holds the 32-byte master key (base64).
+
 ## v0.5.5 · 2026-04-23 · Full agency name with link on first mention
 
 - Every public-facing first mention of the agency now uses "Creative Quality Marketing" (linked to https://creativequalitymarketing.com) with "CQ" introduced as shorthand. Real-agency credibility signal for readers. Covers README, Vision, Getting Started, and the internal Handoff. Internal short-form references remain "CQ" after the first mention.
