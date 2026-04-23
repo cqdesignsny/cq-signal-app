@@ -13,6 +13,7 @@ export const docsSections: DocSection[] = [
   {
     title: "Start here",
     items: [
+      { slug: "handoff", title: "Handoff (read first)", file: "HANDOFF.md" },
       { slug: "getting-started", title: "Getting started", file: "GETTING-STARTED.md" },
       { slug: "vision", title: "Vision", file: "VISION.md" },
       { slug: "changelog", title: "Changelog", file: "CHANGELOG.md" },

@@ -1,18 +1,25 @@
 # Changelog
 
-## v0.5 · 2026-04-23 · Docs, security baseline, chat voice
+## v0.5.1 · 2026-04-23 · Handoff doc and Insights restored
 
-- Full documentation set: [README](../README.md), [VISION](VISION.md), [ARCHITECTURE](ARCHITECTURE.md), [SECURITY](SECURITY.md), [DECISIONS](DECISIONS.md), this changelog.
+- **Handoff doc** at [docs/HANDOFF.md](HANDOFF.md). Single source of truth for any new session, LLM, or contributor picking up the project. Kept up to date at every commit per the explicit maintenance rule.
+- Insights restored as a real placeholder page at `/insights`. Designed, not a dead link. Shows the shape of future weekly briefs, anomaly alerts, cross-business signals, and the brief archive.
+- Main sidebar restored to four nav items: Overview, Insights, Docs, Settings.
+- README and in-app docs index both link HANDOFF first.
+
+## v0.5 · 2026-04-23 · Docs foundation and security baseline
+
+- Full documentation set: [README](../README.md), [VISION](VISION.md), [ARCHITECTURE](ARCHITECTURE.md), [SECURITY](SECURITY.md), [DECISIONS](DECISIONS.md), this changelog, plus developer refs GETTING-STARTED, MARKDOWN-EXPORTS, REST-API, MCP-SERVER, CHAT-API, INTEGRATIONS.
+- In-app `/docs` site rendering the same markdown with react-markdown + remark-gfm. Sub-sidebar with section grouping.
 - Security headers configured in `next.config.ts`: HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy.
 - Chat system prompt rewritten to Signal's voice: conversational, witty, analogy-heavy, pushes back, zero AI slop. No em dashes, no emojis, no filler.
-- Security posture and threat model documented for ongoing reference.
 
 ## v0.4 · 2026-04-23 · AI-ready
 
-- Upgraded Signal chat to an analyst voice.
+- Upgraded Signal chat to analyst voice.
 - New markdown export endpoint: `/api/businesses/[slug]/export?format=md&range=7d|1m|3m|1y`.
 - Export for AI dropdown on every business page (download, copy to clipboard, connect agent).
-- Agents & AI settings page documenting markdown briefs, REST API (coming), MCP server (coming).
+- Agents & AI settings page documenting markdown briefs, REST API (preview), MCP server (coming).
 - LinkedIn and TikTok added to the integration catalog with drill-in structures.
 
 ## v0.3 · 2026-04-23 · App-like polish

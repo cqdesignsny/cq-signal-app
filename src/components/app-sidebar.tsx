@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, LayoutDashboard, Plus, Settings } from "lucide-react";
+import { BookOpen, LayoutDashboard, Plus, Settings, Sparkles } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +23,7 @@ import { businesses } from "@/lib/businesses";
 
 const navItems = [
   { label: "Overview", href: "/", icon: LayoutDashboard, exact: true },
+  { label: "Insights", href: "/insights", icon: Sparkles },
   { label: "Docs", href: "/docs", icon: BookOpen },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
