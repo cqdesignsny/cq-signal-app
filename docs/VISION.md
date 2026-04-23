@@ -6,7 +6,7 @@ Give every business owner clear, transparent, actionable visibility on their mar
 
 ## Why this exists
 
-This is a tool built by a business owner to solve his own problem. Cesar Augustus runs CQ, a marketing agency managing clients across furniture, electrical, med spa, auto body, and aesthetics verticals. Every week, making sense of client marketing data meant pulling numbers from GA4, Meta, Omnisend, Typeform, Shopify, and a dozen other places. The tools that existed (AgencyAnalytics, Whatagraph, Looker Studio) were fine at putting numbers on a page. None of them helped you think. None of them played cleanly with the AI stack that has changed how marketing actually happens.
+This is a tool built by a business owner to solve his own problem. Cesar Augustus runs [Creative Quality Marketing](https://creativequalitymarketing.com) (CQ), a marketing agency managing clients across furniture, electrical, med spa, auto body, and aesthetics verticals. Every week, making sense of client marketing data meant pulling numbers from GA4, Meta, Omnisend, Typeform, Shopify, and a dozen other places. The tools that existed (AgencyAnalytics, Whatagraph, Looker Studio) were fine at putting numbers on a page. None of them helped you think. None of them played cleanly with the AI stack that has changed how marketing actually happens.
 
 CQ Signal is the product that should have existed. An agency owner built it for other agency owners and for the business owners they serve, because the gap between "what the dashboard shows" and "what you should do about it" is where the value lives, and AI is finally good enough to live there.
 

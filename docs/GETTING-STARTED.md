@@ -40,7 +40,7 @@ It is built AI-first. Not AI as a feature tacked on, AI as the assumption. Every
 
 I built CQ Signal because I was frustrated.
 
-I run CQ (Creative Quality Marketing). We manage marketing for real businesses: furniture dealers, electricians, med spas, auto body shops, aesthetic brands. Every week my team and I sit down and try to make sense of data spread across GA4, Meta Business Manager, Omnisend, Typeform, Shopify, and a dozen other places. The tools that exist for this (AgencyAnalytics, Whatagraph, Looker Studio) are fine at putting numbers on a page. None of them actually help you think.
+I run [Creative Quality Marketing](https://creativequalitymarketing.com) (CQ). We manage marketing for real businesses: furniture dealers, electricians, med spas, auto body shops, aesthetic brands. Every week my team and I sit down and try to make sense of data spread across GA4, Meta Business Manager, Omnisend, Typeform, Shopify, and a dozen other places. The tools that exist for this (AgencyAnalytics, Whatagraph, Looker Studio) are fine at putting numbers on a page. None of them actually help you think.
 
 And none of them play nicely with the AI tools that have fundamentally changed how I work. I use Claude every day. My team uses it. Our clients use it. But when it came to analyzing our marketing data, we were copying numbers into chats by hand. That felt broken.
 

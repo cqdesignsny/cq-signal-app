@@ -15,7 +15,7 @@ It connects to the platforms your business uses (analytics, ads, email, social, 
 
 ## Status
 
-Internal tool for CQ (Creative Quality Marketing) while we ship features. Built by Cesar Augustus and Claude together. Private while we iterate.
+Internal tool for [Creative Quality Marketing](https://creativequalitymarketing.com) (CQ) while we ship features. Built by Cesar Augustus and Claude together. Private while we iterate.
 
 **Live:** [cq-signal-app.vercel.app](https://cq-signal-app.vercel.app)
 **Repo:** [github.com/cqdesignsny/cq-signal-app](https://github.com/cqdesignsny/cq-signal-app)
@@ -62,4 +62,4 @@ For Cesar Augustus and any LLM/session continuing the build:
 
 ## Contact
 
-Cesar Augustus · CQ · `cqdesignsny@gmail.com`
+Cesar Augustus · [Creative Quality Marketing](https://creativequalitymarketing.com) · `cqdesignsny@gmail.com`

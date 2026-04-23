@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.5 · 2026-04-23 · Full agency name with link on first mention
+
+- Every public-facing first mention of the agency now uses "Creative Quality Marketing" (linked to https://creativequalitymarketing.com) with "CQ" introduced as shorthand. Real-agency credibility signal for readers. Covers README, Vision, Getting Started, and the internal Handoff. Internal short-form references remain "CQ" after the first mention.
+
 ## v0.5.4 · 2026-04-23 · Why CQ Signal is different
 
 - New section added to Getting Started: "Why CQ Signal is different." Seven concrete differentiators vs existing business data tools: AI-native architecture, data portability, prescriptive analysis, business-owner framing (not agency-only), white-label included, honesty about limitations, modern design. Sits between the mission and the technical setup.

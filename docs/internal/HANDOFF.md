@@ -8,7 +8,7 @@ Read this first if you are a new session, a different LLM (Codex, Gemini, anothe
 
 CQ Signal is a marketing reporting and analytics platform built AI-first. It gives business owners and agency operators a clean dashboard for their marketing performance, plus the ability to export every view as a Markdown brief or query it via a (coming) MCP server, so their own AI agents can analyze the data directly.
 
-**Owner:** Cesar Augustus. Runs CQ (Creative Quality Marketing, creativequalitymarketing.com). Building this for his agency's internal use first, then SaaS later.
+**Owner:** Cesar Augustus. Runs [Creative Quality Marketing](https://creativequalitymarketing.com) (CQ). Building this for his agency's internal use first, then SaaS later.
 
 **Live:** [cq-signal-app.vercel.app](https://cq-signal-app.vercel.app)
 **Repo:** [github.com/cqdesignsny/cq-signal-app](https://github.com/cqdesignsny/cq-signal-app)
@@ -16,7 +16,7 @@ CQ Signal is a marketing reporting and analytics platform built AI-first. It giv
 
 ## Current state
 
-**Version:** v0.5.4 (Getting Started: Why CQ Signal is different section)
+**Version:** v0.5.5 (full agency name with link on first mention everywhere public)
 **Last commit SHA:** update this when you commit
 **Last updated:** 2026-04-23
 
@@ -83,6 +83,7 @@ Version history in [../CHANGELOG.md](../CHANGELOG.md). High level:
 - **v0.5.2.** Public/internal docs split (public at `/docs`, internal at `docs/internal/`). Docs content + nav font sizes bumped 30% for readability. Main sidebar nav labels bumped. Dramatic card-lift hover with brand-tinted shadows. Themed scrollbars, brand-colored focus rings and selection, link underline animation utility.
 - **v0.5.3.** Getting Started rewritten as welcoming entry point with sections: What CQ Signal is, How it works, Who it is for, Best use cases, and Our mission and why we built this (Cesar Augustus's story in first person). Vision gets Mission statement and Why this exists section at the top.
 - **v0.5.4.** Getting Started gains "Why CQ Signal is different" section with seven concrete differentiators: AI-native architecture, data portability, prescriptive analysis, business-owner framing, white-label included, honesty about limitations, modern design.
+- **v0.5.5.** Every public-facing first mention of the agency uses "Creative Quality Marketing" linked to https://creativequalitymarketing.com, with "CQ" introduced as the shorthand. README, Vision, Getting Started, Handoff all updated.
 
 ## Key decisions and constraints
 
