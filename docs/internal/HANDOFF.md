@@ -86,6 +86,7 @@ Version history in [../CHANGELOG.md](../CHANGELOG.md). High level:
 - **v0.5.5.** Every public-facing first mention of the agency uses "Creative Quality Marketing" linked to https://creativequalitymarketing.com, with "CQ" introduced as the shorthand.
 - **v0.6.0.** Drizzle ORM + Neon serverless driver. Full schema applied: workspaces, users, businesses, integrations, integration_credentials (encrypted), metrics_raw, leads (encrypted PII), reports. AES-256-GCM credential encryption utility at `src/lib/crypto.ts` with master key in `CQ_SIGNAL_SECRET`.
 - **v0.7.0.** Clerk v7 auth end-to-end. `proxy.ts` with route matcher, ClerkProvider wrapping the app, local `/sign-in` and `/sign-up` pages styled with CQ Signal logo, UserButton in top-bar, `getOrCreateUser` helper that auto-creates workspace + owner on first sign-in. Env vars pushed to Vercel.
+- **v0.8.0.** Marketing landing at `/` (public) with hero, problem, how-it-works, 7 differentiators, mission, CTA, footer. App moved from `(app)` group to `/app/*` segment. `proxy.ts` protects `/app/*` and `/api/*` while marketing, sign-in, sign-up stay public. Clerk redirects now route to `/app` after sign-in/sign-up. Internal links bulk-updated.
 
 ## Key decisions and constraints
 

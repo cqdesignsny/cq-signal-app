@@ -27,7 +27,7 @@ export default function OverviewPage() {
 
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {businesses.map((b, i) => (
-          <Link key={b.slug} href={`/businesses/${b.slug}`} className="group">
+          <Link key={b.slug} href={`/app/businesses/${b.slug}`} className="group">
             <Card className="card-lift h-full group-hover:ring-brand/45 group-hover:ring-2">
               <CardHeader>
                 <div className="flex items-start justify-between">

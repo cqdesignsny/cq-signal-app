@@ -119,8 +119,8 @@ Pushes to GitHub `main` auto-deploy to Vercel if the repo is linked. Set `AI_GAT
 
 ## Next steps
 
-- [Vision](/docs/vision) for the product's strategic angle and positioning.
-- [Markdown exports](/docs/markdown-exports) for plugging Signal data into your own LLM.
-- [MCP server](/docs/mcp-server) for the coming direct-connection protocol.
-- [Integration catalog](/docs/integrations) for every channel Signal reports on.
-- [Security](/docs/security) for how your data and your clients' data is protected.
+- [Vision](/app/docs/vision) for the product's strategic angle and positioning.
+- [Markdown exports](/app/docs/markdown-exports) for plugging Signal data into your own LLM.
+- [MCP server](/app/docs/mcp-server) for the coming direct-connection protocol.
+- [Integration catalog](/app/docs/integrations) for every channel Signal reports on.
+- [Security](/app/docs/security) for how your data and your clients' data is protected.

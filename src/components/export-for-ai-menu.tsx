@@ -79,7 +79,7 @@ export function ExportForAiMenu({ businessSlug, businessName }: Props) {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/settings/agents">
+          <Link href="/app/settings/agents">
             <ExternalLink className="size-4" />
             Connect your agent
           </Link>

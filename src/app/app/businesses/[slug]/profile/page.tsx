@@ -25,7 +25,7 @@ export default async function BusinessProfilePage({ params }: Props) {
     <div className="mx-auto max-w-3xl space-y-10">
       <div>
         <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-          <Link href={`/businesses/${business.slug}`}>
+          <Link href={`/app/businesses/${business.slug}`}>
             <ArrowLeft className="size-3.5" />
             {business.name}
           </Link>

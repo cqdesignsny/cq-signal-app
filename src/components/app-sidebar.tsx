@@ -22,10 +22,10 @@ import { SidebarThemeToggle } from "@/components/sidebar-theme-toggle";
 import { businesses } from "@/lib/businesses";
 
 const navItems = [
-  { label: "Overview", href: "/", icon: LayoutDashboard, exact: true },
-  { label: "Insights", href: "/insights", icon: Sparkles },
-  { label: "Docs", href: "/docs", icon: BookOpen },
-  { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Overview", href: "/app", icon: LayoutDashboard, exact: true },
+  { label: "Insights", href: "/app/insights", icon: Sparkles },
+  { label: "Docs", href: "/app/docs", icon: BookOpen },
+  { label: "Settings", href: "/app/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -37,7 +37,7 @@ export function AppSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2 px-1 py-1">
+        <Link href="/app" className="flex items-center gap-2 px-1 py-1">
           <Image
             src="/cq-signal-logo.png"
             alt="CQ Signal"
@@ -88,12 +88,12 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {businesses.map((b) => {
-                const active = pathname === `/businesses/${b.slug}`;
+                const active = pathname === `/app/businesses/${b.slug}`;
                 const initials = (b.shortName ?? b.name).slice(0, 2).toUpperCase();
                 return (
                   <SidebarMenuItem key={b.slug}>
                     <SidebarMenuButton asChild isActive={active} className="h-10 text-[15px]">
-                      <Link href={`/businesses/${b.slug}`}>
+                      <Link href={`/app/businesses/${b.slug}`}>
                         <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-muted text-[11px] font-semibold text-muted-foreground group-data-[active=true]/menu-item:bg-brand/10 group-data-[active=true]/menu-item:text-brand">
                           {initials}
                         </span>
@@ -107,9 +107,9 @@ export function AppSidebar() {
                 <SidebarMenuButton
                   asChild
                   className="h-10 text-[15px] text-muted-foreground"
-                  isActive={pathname === "/businesses/new"}
+                  isActive={pathname === "/app/businesses/new"}
                 >
-                  <Link href="/businesses/new">
+                  <Link href="/app/businesses/new">
                     <Plus className="size-[18px]" />
                     <span>Add Business</span>
                   </Link>

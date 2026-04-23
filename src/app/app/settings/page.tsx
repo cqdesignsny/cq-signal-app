@@ -4,7 +4,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 
 const SECTIONS = [
   {
-    href: "/settings/agents",
+    href: "/app/settings/agents",
     icon: Bot,
     title: "Agents & AI",
     description:

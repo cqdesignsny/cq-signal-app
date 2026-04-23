@@ -38,7 +38,7 @@ export default async function BusinessPage({ params }: Props) {
             </h1>
             <div className="flex flex-wrap items-center gap-2">
               <Button asChild variant="outline" size="sm" className="gap-1.5">
-                <Link href={`/businesses/${business.slug}/profile`}>
+                <Link href={`/app/businesses/${business.slug}/profile`}>
                   <Settings2 className="size-3.5" />
                   Edit profile
                 </Link>
@@ -69,7 +69,7 @@ export default async function BusinessPage({ params }: Props) {
               return (
                 <Link
                   key={key}
-                  href={`/businesses/${business.slug}/${key}`}
+                  href={`/app/businesses/${business.slug}/${key}`}
                   className="group"
                 >
                   <Card className="card-lift h-full group-hover:ring-2 group-hover:ring-brand/45">

@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.8.0 · 2026-04-23 · Marketing landing + app moved to /app/*
+
+- New marketing landing page at `/` (public). Sticky glass nav with logo and Sign in / Get started CTAs; hero with editorial headline and brand-tagged chip; problem section; how-it-works four-card grid; seven differentiator cards; mission section with warm brand gradient overlay and Cesar's story in first person linking to [Creative Quality Marketing](https://creativequalitymarketing.com); final CTA; footer with nav anchors and sign-in link.
+- Signed-in app moved from the `(app)` route group to the `/app/*` segment. All internal links bulk-updated to the new paths. Docs markdown cross-links updated to `/app/docs/*`.
+- `proxy.ts` rewritten: protect `/app/*`, `/api/businesses/*`, `/api/chat/*`. Marketing, sign-in, sign-up stay public.
+- `ClerkProvider` redirects signed-in and signed-up users to `/app` instead of `/`.
+- `scroll-behavior: smooth` on `html` for anchor nav.
+
+Verified locally: `/` returns 200 marketing; `/sign-in` returns 200 Clerk widget; `/app`, `/app/businesses/*`, `/app/docs` return 307 to `/sign-in`.
+
 ## v0.7.0 · 2026-04-23 · Clerk authentication
 
 - Clerk v7 wired end-to-end following Next.js 16 conventions: `proxy.ts` at `src/proxy.ts` with `clerkMiddleware` and a route matcher that protects everything except `/sign-in/*` and `/sign-up/*`.

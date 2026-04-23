@@ -33,7 +33,7 @@ export default function DocsIndexPage() {
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {section.items.map((item) => (
-                <Link key={item.slug} href={`/docs/${item.slug}`} className="group">
+                <Link key={item.slug} href={`/app/docs/${item.slug}`} className="group">
                   <Card className="card-lift h-full group-hover:ring-2 group-hover:ring-brand/45">
                     <CardHeader>
                       <div className="flex items-start justify-between gap-3">

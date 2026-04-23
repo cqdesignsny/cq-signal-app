@@ -1,12 +1,15 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
-  "/sign-up(.*)",
+// Protect the app shell and API routes. The marketing landing at "/" and the
+// sign-in / sign-up pages stay public.
+const isProtectedRoute = createRouteMatcher([
+  "/app(.*)",
+  "/api/businesses(.*)",
+  "/api/chat(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
+  if (isProtectedRoute(req)) {
     await auth.protect();
   }
 });

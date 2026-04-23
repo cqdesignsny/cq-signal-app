@@ -12,10 +12,10 @@ export function DocsNav() {
     <nav className="space-y-7 text-base">
       <div>
         <Link
-          href="/docs"
+          href="/app/docs"
           className={cn(
             "block py-1 font-mono text-xs uppercase tracking-widest transition-colors",
-            pathname === "/docs"
+            pathname === "/app/docs"
               ? "text-foreground"
               : "text-muted-foreground hover:text-foreground",
           )}
@@ -30,7 +30,7 @@ export function DocsNav() {
           </p>
           <ul className="space-y-1">
             {section.items.map((item) => {
-              const href = `/docs/${item.slug}`;
+              const href = `/app/docs/${item.slug}`;
               const isActive = pathname === href;
               return (
                 <li key={item.slug}>

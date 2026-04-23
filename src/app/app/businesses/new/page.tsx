@@ -25,7 +25,7 @@ export default function NewBusinessPage() {
       </div>
 
       <Button asChild variant="outline" size="sm">
-        <Link href="/">
+        <Link href="/app">
           <ArrowLeft />
           Back to overview
         </Link>

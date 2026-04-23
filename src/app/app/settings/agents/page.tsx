@@ -8,7 +8,7 @@ export default function AgentsSettingsPage() {
     <div className="mx-auto max-w-4xl space-y-12">
       <div>
         <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
-          <Link href="/settings">
+          <Link href="/app/settings">
             <ArrowLeft className="size-3.5" />
             Settings
           </Link>
