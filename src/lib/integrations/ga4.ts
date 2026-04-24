@@ -1,5 +1,3 @@
-import "server-only";
-
 // GA4 Data API client using OAuth2 refresh token flow.
 // For internal CQ use tonight, we reuse Cesar's OAuth client and refresh token
 // stored as env vars. Future multi-tenant wiring will store per-business

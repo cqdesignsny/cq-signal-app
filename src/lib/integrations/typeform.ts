@@ -1,5 +1,3 @@
-import "server-only";
-
 // Typeform Responses API client.
 // Reads a single form's submissions with period-over-period comparison.
 // For tonight's internal use we read the PAT from TYPEFORM_PAT env var.
