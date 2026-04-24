@@ -1,24 +1,47 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import type { Metadata } from "next";
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  Minus,
-  Printer,
-  Sparkles,
-} from "lucide-react";
 import {
   getReportByShareToken,
   REPORT_RANGES,
-  type ReportRangeData,
+  type ManualChannelData,
   type ReportRangeKey,
   type ReportSnapshot,
 } from "@/lib/reports/generate";
-import type { GA4Snapshot } from "@/lib/integrations/ga4";
-import type { TypeformSnapshot } from "@/lib/integrations/typeform";
+import {
+  generateRecommendations,
+  type Recommendation,
+} from "@/lib/reports/recommendations";
 import { ReportRangeTabs } from "@/components/report-range-tabs";
-import { cn } from "@/lib/utils";
+import { TopStripe } from "@/components/report/top-stripe";
+import { ReportHeader } from "@/components/report/report-header";
+import { SectionNav, type SectionNavItem } from "@/components/report/section-nav";
+import { SectionCard } from "@/components/report/section-card";
+import { SectionGroup, SubCard } from "@/components/report/section-group";
+import { ExecSummary } from "@/components/report/exec-summary";
+import { MetricGrid, MetricBox } from "@/components/report/metric-grid";
+import { HeroMetric } from "@/components/report/hero-metric";
+import {
+  ChannelDonut,
+  paletteFor,
+} from "@/components/report/channel-donut";
+import { TrendChart } from "@/components/report/trend-chart";
+import { DataTable, type Column } from "@/components/report/data-table";
+import {
+  LeadStatusBadge,
+  type LeadStatus,
+} from "@/components/report/lead-status-badge";
+import { CampaignHighlight } from "@/components/report/campaign-highlight";
+import {
+  SocialSplit,
+  SocialPlatform,
+  PLATFORM_STYLES,
+} from "@/components/report/social-split";
+import { CoreWebVitals } from "@/components/report/core-web-vitals";
+import { RecommendationsList } from "@/components/report/recommendations-list";
+import { ReportFooter } from "@/components/report/report-footer";
+import { EmptyState } from "@/components/report/empty-state";
+import { PrintButton } from "@/components/report/print-button";
+import type { TypeformLead } from "@/lib/integrations/typeform";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const snapshot = await getReportByShareToken(token);
   if (!snapshot) return { title: "Report not found" };
   return {
-    title: `${snapshot.business.name} · Marketing Report`,
+    title: `${snapshot.business.name} marketing report`,
     description: `Marketing performance report for ${snapshot.business.name}.`,
   };
 }
@@ -41,21 +64,13 @@ function isValidRange(value: string | undefined): value is ReportRangeKey {
   return REPORT_RANGES.some((r) => r.key === value);
 }
 
-export default async function ReportPage({ params, searchParams }: Props) {
-  const { token } = await params;
-  const sp = await searchParams;
-  const snapshot = await getReportByShareToken(token);
-  if (!snapshot) notFound();
-
-  const activeRange: ReportRangeKey = isValidRange(sp.range)
-    ? sp.range
-    : snapshot.primaryRange;
-
-  return <ReportView snapshot={snapshot} activeRange={activeRange} />;
-}
-
 function formatNumber(n: number): string {
   return new Intl.NumberFormat("en-US").format(Math.round(n));
+}
+
+function formatNumberCompact(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+  return Math.round(n).toString();
 }
 
 function formatDuration(seconds: number): string {
@@ -63,12 +78,7 @@ function formatDuration(seconds: number): string {
   const s = Math.round(seconds);
   const m = Math.floor(s / 60);
   const r = s % 60;
-  return `${m}m ${r.toString().padStart(2, "0")}s`;
-}
-
-function formatPercent(value: number, digits = 1): string {
-  if (Number.isNaN(value) || !Number.isFinite(value)) return "—";
-  return `${value.toFixed(digits)}%`;
+  return m === 0 ? `${r}s` : `${m}m ${r.toString().padStart(2, "0")}s`;
 }
 
 function formatDateRange(start: string, end: string): string {
@@ -91,44 +101,80 @@ function formatDateRange(start: string, end: string): string {
   return `${monthShort(s)} ${s.getUTCDate()}, ${s.getUTCFullYear()} to ${monthShort(e)} ${e.getUTCDate()}, ${e.getUTCFullYear()}`;
 }
 
-function Delta({
-  deltaPct,
-  positiveIsGood = true,
-}: {
-  deltaPct: number | null | undefined;
-  positiveIsGood?: boolean;
-}) {
-  if (deltaPct === null || deltaPct === undefined || Number.isNaN(deltaPct)) {
-    return null;
-  }
-  const isUp = deltaPct > 0.5;
-  const isDown = deltaPct < -0.5;
-  const tone = positiveIsGood
-    ? isUp
-      ? "text-emerald-600 dark:text-emerald-400"
-      : isDown
-        ? "text-brand"
-        : "text-muted-foreground"
-    : isUp
-      ? "text-brand"
-      : isDown
-        ? "text-emerald-600 dark:text-emerald-400"
-        : "text-muted-foreground";
-  const Icon = isUp ? ArrowUpRight : isDown ? ArrowDownRight : Minus;
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-0.5 font-mono text-xs font-medium",
-        tone,
-      )}
-    >
-      <Icon className="size-3" />
-      {Math.abs(deltaPct).toFixed(1)}%
-    </span>
-  );
+function periodBadge(rangeKey: ReportRangeKey, end: string): string {
+  const e = new Date(end + "T00:00:00Z");
+  const monthLong = e.toLocaleDateString("en-US", {
+    month: "long",
+    timeZone: "UTC",
+  });
+  const year = e.getUTCFullYear();
+  const isMonthToDate = rangeKey === "30d";
+  if (isMonthToDate) return `${monthLong} ${year} — Month to Date`;
+  const labelMap: Record<ReportRangeKey, string> = {
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+    "90d": "Last 90 days",
+    "1y": "Last 12 months",
+  };
+  return `${labelMap[rangeKey]}, ${year}`;
 }
 
-function ReportView({
+function pickLeadStatus(_lead: TypeformLead): LeadStatus {
+  // No status field on raw Typeform leads yet; default to "New" until we
+  // wire a CRM status loop.
+  return "new";
+}
+
+function manualChannel(
+  channels: ManualChannelData[],
+  key: ManualChannelData["channel"],
+): ManualChannelData | undefined {
+  return channels.find((c) => c.channel === key);
+}
+
+function manualSecondary(
+  channel: ManualChannelData | undefined,
+  label: RegExp,
+): string | undefined {
+  if (!channel) return undefined;
+  const hit = channel.secondary.find((s) => label.test(s.label));
+  return hit?.value;
+}
+
+const CHANNEL_COLOR_MAP: Record<string, string> = {
+  Direct: "#F59E0B",
+  "Organic Search": "#22C55E",
+  "Paid Search": "#8B5CF6",
+  "Cross-network": "#8B5CF6",
+  Email: "#EC4899",
+  "Organic Social": "#3B82F6",
+  "Paid Social": "#0EA5E9",
+  Referral: "#14B8A6",
+  Display: "#A855F7",
+  "Paid Shopping": "#F97316",
+  "Organic Shopping": "#10B981",
+  "Organic Video": "#EF4444",
+  Other: "#94A3B8",
+};
+
+function colorForChannel(name: string, index: number): string {
+  return CHANNEL_COLOR_MAP[name] ?? paletteFor(index);
+}
+
+export default async function ReportPage({ params, searchParams }: Props) {
+  const { token } = await params;
+  const sp = await searchParams;
+  const snapshot = await getReportByShareToken(token);
+  if (!snapshot) notFound();
+
+  const activeRange: ReportRangeKey = isValidRange(sp.range)
+    ? sp.range
+    : snapshot.primaryRange;
+
+  return <ReportView snapshot={snapshot} activeRange={activeRange} />;
+}
+
+async function ReportView({
   snapshot,
   activeRange,
 }: {
@@ -137,436 +183,587 @@ function ReportView({
 }) {
   const { business, manualChannels, narrative } = snapshot;
   const rangeData = snapshot.ranges[activeRange];
-  const rangeLabel =
-    REPORT_RANGES.find((r) => r.key === activeRange)?.label ?? "";
+
+  const navItems: SectionNavItem[] = [
+    { id: "summary", label: "Summary" },
+    { id: "traffic", label: "Traffic" },
+    { id: "leads", label: "Leads" },
+    { id: "email", label: "Email" },
+    { id: "ads", label: "Ads" },
+    { id: "social", label: "Social" },
+    { id: "recommendations", label: "Recommendations" },
+  ];
+
+  let recommendations: Recommendation[] = [];
+  let recommendationsErrored = false;
+  try {
+    recommendations = await generateRecommendations({
+      businessName: business.name,
+      vertical: business.vertical ?? "",
+      tagline: business.tagline ?? "",
+      rangeLabel:
+        REPORT_RANGES.find((r) => r.key === activeRange)?.label ?? activeRange,
+      activeRange: rangeData,
+      manualNotes: manualChannels
+        .map((c) => `${c.source}: ${c.notes ?? ""}`)
+        .filter((s) => s.length > 5)
+        .join("\n\n"),
+    });
+  } catch (err) {
+    console.error("[report] recommendations failed", err);
+    recommendationsErrored = true;
+  }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12 md:py-16 print:py-6">
-      <nav className="mb-10 flex items-center justify-between print:hidden">
-        <Image
-          src="/cq-signal-logo.png"
-          alt="CQ Signal"
-          width={140}
-          height={40}
-          className="block h-7 w-auto dark:hidden"
+    <>
+      <TopStripe />
+      <main className="mx-auto max-w-[900px] px-4 pb-16 pt-2 md:px-4">
+        <ReportHeader
+          business={{
+            name: business.name,
+            logoUrl: business.logoUrl,
+            shortName: business.shortName ?? business.name,
+          }}
+          periodLabel={periodBadge(activeRange, rangeData.range.endDate)}
+          reportTitle="Marketing Report"
         />
-        <Image
-          src="/cq-signal-logo-dark.png"
-          alt="CQ Signal"
-          width={140}
-          height={40}
-          className="hidden h-7 w-auto dark:block"
-        />
-        <a
-          href="javascript:window.print()"
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted"
+
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-1 print:hidden">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="font-mono uppercase tracking-wider">View range</span>
+            <ReportRangeTabs
+              activeRange={activeRange}
+              defaultRange={snapshot.primaryRange}
+            />
+          </div>
+          <PrintButton />
+        </div>
+
+        <SectionNav items={navItems} />
+
+        {/* 1. Executive Summary */}
+        <SectionCard
+          id="summary"
+          number={1}
+          title="Executive Summary"
+          tone="gold"
         >
-          <Printer className="size-3.5" />
-          Print or save as PDF
-        </a>
-      </nav>
-
-      <header className="border-b pb-10 md:pb-14">
-        {business.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={business.logoUrl}
-            alt={business.name}
-            className="mb-8 h-20 w-auto max-w-[320px] object-contain object-left"
+          <ExecSummary
+            body={narrative ?? "Live data is flowing. Once a few periods stack up, this section will summarize what changed and why."}
           />
-        ) : null}
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-          Marketing report · Last {rangeLabel}
-        </p>
-        <h1 className="mt-3 font-display text-5xl tracking-tight md:text-7xl">
-          {business.name}
-        </h1>
-        {business.tagline ? (
-          <p className="mt-3 max-w-2xl text-base text-muted-foreground md:text-lg">
-            {business.tagline}
-          </p>
-        ) : null}
-        <div className="mt-8 grid gap-6 text-sm md:grid-cols-3">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-              Period
-            </p>
-            <p className="mt-1 font-display text-base text-foreground">
-              {formatDateRange(rangeData.range.startDate, rangeData.range.endDate)}
-            </p>
-          </div>
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-              Compared to
-            </p>
-            <p className="mt-1 font-display text-base text-foreground">
-              {formatDateRange(
-                rangeData.priorRange.startDate,
-                rangeData.priorRange.endDate,
-              )}
-            </p>
-          </div>
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-              Generated
-            </p>
-            <p className="mt-1 font-display text-base text-foreground">
-              {new Date(snapshot.generatedAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-10 flex flex-wrap items-center gap-3 print:hidden">
-          <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-            View range
-          </p>
-          <ReportRangeTabs
-            activeRange={activeRange}
-            defaultRange={snapshot.primaryRange}
-          />
-        </div>
-      </header>
-
-      {narrative ? (
-        <section className="relative mt-12 overflow-hidden rounded-2xl border border-border/60 p-8 md:p-10 print:break-inside-avoid">
-          <div className="absolute inset-0 bg-mesh-brand" aria-hidden />
-          <div className="relative">
-            <div className="flex items-center gap-2">
-              <Sparkles className="size-4 text-brand" />
-              <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                Signal read
+          <div className="mt-5 grid gap-3 text-xs text-muted-foreground sm:grid-cols-2 md:grid-cols-3">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider">
+                Period
+              </p>
+              <p className="mt-0.5 text-foreground">
+                {formatDateRange(rangeData.range.startDate, rangeData.range.endDate)}
               </p>
             </div>
-            <p className="mt-4 font-display text-2xl leading-snug md:text-3xl">
-              {narrative}
-            </p>
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider">
+                Compared to
+              </p>
+              <p className="mt-0.5 text-foreground">
+                {formatDateRange(
+                  rangeData.priorRange.startDate,
+                  rangeData.priorRange.endDate,
+                )}
+              </p>
+            </div>
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider">
+                Generated
+              </p>
+              <p className="mt-0.5 text-foreground">
+                {new Date(snapshot.generatedAt).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
           </div>
-        </section>
-      ) : null}
+        </SectionCard>
 
-      {rangeData.ga4 ? <GA4Section snapshot={rangeData.ga4} /> : null}
+        {/* 2. Website Traffic (group) */}
+        <SectionGroup
+          id="traffic"
+          number={2}
+          title="Website Traffic"
+          badge={activeRange === "30d" ? "Month to Date" : undefined}
+        >
+          <TrafficSection rangeData={rangeData} />
+        </SectionGroup>
 
-      {rangeData.typeform ? (
-        <TypeformSection snapshot={rangeData.typeform} />
-      ) : null}
-
-      {manualChannels.map((channel) => (
-        <ManualSection key={channel.channel} data={channel} />
-      ))}
-
-      <footer className="mt-20 border-t pt-8 text-sm text-muted-foreground print:mt-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <span>
-            Generated by{" "}
-            <Image
-              src="/cq-signal-logo.png"
-              alt="CQ Signal"
-              width={100}
-              height={28}
-              className="inline-block h-4 w-auto align-middle dark:hidden"
+        {/* 3. Leads */}
+        <SectionCard id="leads" number={3} title="Leads" tone="gold">
+          {rangeData.typeform ? (
+            <>
+              <MetricGrid>
+                <MetricBox
+                  label="Total Leads"
+                  value={formatNumber(rangeData.typeform.totalLeads.current)}
+                />
+                <MetricBox
+                  label="vs Previous Period"
+                  value={formatNumber(rangeData.typeform.totalLeads.prior)}
+                  deltaPct={rangeData.typeform.totalLeads.deltaPct}
+                />
+              </MetricGrid>
+              <LeadsTable leads={rangeData.typeform.leads.slice(0, 10)} />
+            </>
+          ) : (
+            <EmptyState
+              title="Lead form not connected yet"
+              body="Connect Typeform (or another form provider) to capture every submission with name, contact, and timestamp."
             />
-            <Image
-              src="/cq-signal-logo-dark.png"
-              alt="CQ Signal"
-              width={100}
-              height={28}
-              className="hidden h-4 w-auto align-middle dark:inline-block"
-            />{" "}
-            for{" "}
-            <a
-              href="https://creativequalitymarketing.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-foreground"
-            >
-              Creative Quality Marketing
-            </a>
-          </span>
-          <span className="font-mono text-xs">
-            {new Date(snapshot.generatedAt).toISOString()}
-          </span>
-        </div>
-      </footer>
-    </main>
+          )}
+        </SectionCard>
+
+        {/* 4. Email Marketing */}
+        <SectionCard id="email" number={4} title="Email Marketing" tone="red">
+          <EmailSection channel={manualChannel(manualChannels, "omnisend")} />
+        </SectionCard>
+
+        {/* 5. Ads */}
+        <SectionCard id="ads" number={5} title="Paid Ads" tone="gold">
+          <AdsSection channel={manualChannel(manualChannels, "meta-ads")} />
+        </SectionCard>
+
+        {/* 6. Organic Social */}
+        <SectionCard id="social" number={6} title="Organic Social" tone="red">
+          <OrganicSocialSection
+            instagram={manualChannel(manualChannels, "instagram")}
+            facebook={manualChannel(manualChannels, "facebook")}
+            linkedin={manualChannel(manualChannels, "linkedin")}
+          />
+        </SectionCard>
+
+        {/* 7. Recommendations */}
+        <SectionCard
+          id="recommendations"
+          number={7}
+          title="Recommendations & Next Steps"
+          tone="gold"
+        >
+          {recommendationsErrored ? (
+            <EmptyState
+              title="Signal couldn't generate recommendations"
+              body="The AI Gateway returned an error. Refresh the page or check the gateway billing status."
+            />
+          ) : (
+            <RecommendationsList
+              items={recommendations.map((r) => ({
+                title: r.title,
+                body: r.rationale,
+                expected: r.expected,
+              }))}
+            />
+          )}
+        </SectionCard>
+
+        <ReportFooter
+          businessName={business.name}
+          generatedAt={snapshot.generatedAt}
+        />
+      </main>
+    </>
   );
 }
 
-function SectionHeader({
-  source,
-  sourceDescription,
-  title,
-  context,
-}: {
-  source: string;
-  sourceDescription?: string;
-  title: string;
-  context?: string;
-}) {
+function TrafficSection({ rangeData }: { rangeData: ReportSnapshot["ranges"][ReportRangeKey] }) {
+  const ga4 = rangeData.ga4;
+
+  if (!ga4) {
+    return (
+      <SubCard title="Website analytics" source="Google Analytics">
+        <EmptyState
+          title="GA4 not connected for this business"
+          body="Once connected, you'll see sessions, top pages, traffic sources, and a daily trend here."
+        />
+      </SubCard>
+    );
+  }
+
+  const channelSegments = (ga4.channelBreakdown ?? [])
+    .slice(0, 6)
+    .map((c, i) => ({
+      label: c.channel,
+      pct: c.pct,
+      color: colorForChannel(c.channel, i),
+    }));
+
+  const dailySeries = (ga4.dailySessions ?? []).map((d) => d.sessions);
+
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-4">
-      <div>
-        <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-          {source}
-          {sourceDescription ? (
-            <span className="ml-1 normal-case tracking-normal text-muted-foreground/70">
-              · {sourceDescription}
-            </span>
+    <>
+      {/* 2A. All Visitors + Donut + Trend */}
+      <SubCard title="All Visitors" source="Google Analytics">
+        <div className="flex flex-col gap-10 lg:flex-row lg:items-center">
+          <HeroMetric
+            value={formatNumber(ga4.sessions.current)}
+            deltaPct={ga4.sessions.deltaPct}
+            chart={
+              dailySeries.length > 1 ? (
+                <TrendChart data={dailySeries} color="#22C55E" height={180} />
+              ) : null
+            }
+          />
+          {channelSegments.length > 0 ? (
+            <div className="lg:max-w-[320px] lg:flex-shrink-0">
+              <ChannelDonut segments={channelSegments} />
+            </div>
           ) : null}
+        </div>
+      </SubCard>
+
+      {/* 2B. Search Performance (Search Console — empty state for now) */}
+      <SubCard title="Search Performance" source="Search Console">
+        <EmptyState
+          title="Search Console not yet connected"
+          body="Once wired, you'll see total impressions, clicks, top queries, and a daily trend with prior-period overlay."
+        />
+      </SubCard>
+
+      {/* 2C. Audience: New vs Returning + Cities — empty state for now */}
+      <SubCard title="Audience" source="Google Analytics">
+        <div className="grid gap-4 md:grid-cols-2">
+          <AudienceQuickCard
+            label="Avg session duration"
+            value={formatDuration(ga4.avgSessionDurationSec.current)}
+            prior={formatDuration(ga4.avgSessionDurationSec.prior)}
+          />
+          <AudienceQuickCard
+            label="Bounce rate"
+            value={`${(ga4.bounceRate.current * 100).toFixed(1)}%`}
+            prior={`${(ga4.bounceRate.prior * 100).toFixed(1)}%`}
+          />
+        </div>
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+          New vs returning visitor breakdowns and top-cities data will land here once we extend the GA4 query to pull `firstUserDefaultChannelGroup` and `city` dimensions.
         </p>
-        <h2 className="mt-1 font-display text-3xl tracking-tight md:text-4xl">
-          {title}
-        </h2>
-      </div>
-      {context ? (
-        <p className="text-sm text-muted-foreground">{context}</p>
-      ) : null}
-    </div>
+      </SubCard>
+
+      {/* 2D. Top Search Queries (empty state) */}
+      <SubCard title="Top Search Queries" source="Search Console">
+        <EmptyState
+          title="Connect Google Search Console"
+          body="Once authorized, the top 10 queries this period will appear here ranked by clicks, with impression counts."
+        />
+      </SubCard>
+
+      {/* 2E. Top Content */}
+      <SubCard title="Top Content" source="Google Analytics">
+        <TopContentTable pages={ga4.topLandingPages.slice(0, 10)} />
+      </SubCard>
+
+      {/* 2F. Core Web Vitals */}
+      <SubCard
+        title="Core Web Vitals"
+        source="PageSpeed Insights — Field Data"
+      >
+        <CoreWebVitals
+          vitals={[
+            {
+              label: "Largest Contentful Paint",
+              description: "How fast the main content loads",
+              value: "—",
+              rating: "na",
+            },
+            {
+              label: "Cumulative Layout Shift",
+              description: "How stable the page is while loading",
+              value: "—",
+              rating: "na",
+            },
+            {
+              label: "Interaction to Next Paint",
+              description: "How fast the page responds to taps and clicks",
+              value: "—",
+              rating: "na",
+            },
+          ]}
+        />
+        <p className="mt-3 text-xs text-muted-foreground">
+          Field data appears once the PageSpeed Insights API integration is wired up. Lab data is also possible if you want a quick proxy in the meantime.
+        </p>
+      </SubCard>
+    </>
   );
 }
 
-function MetricRow({
+function AudienceQuickCard({
   label,
   value,
   prior,
-  deltaPct,
-  positiveIsGood = true,
 }: {
   label: string;
   value: string;
-  prior?: string;
-  deltaPct?: number | null;
-  positiveIsGood?: boolean;
+  prior: string;
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl border bg-card p-5 print:border-border">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mono-nums text-4xl leading-tight text-foreground md:text-5xl">
+    <div className="rounded-lg border border-border/60 bg-muted/30 p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <p className="mono-nums mt-1 text-2xl font-extrabold text-foreground">
         {value}
       </p>
-      {(prior || deltaPct !== undefined) && (
-        <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-          {deltaPct !== undefined && deltaPct !== null ? (
-            <Delta deltaPct={deltaPct} positiveIsGood={positiveIsGood} />
-          ) : null}
-          {prior ? <span>vs {prior}</span> : null}
-        </div>
-      )}
+      <p className="mt-0.5 text-xs text-muted-foreground">vs {prior} prior</p>
     </div>
   );
 }
 
-function GA4Section({ snapshot }: { snapshot: GA4Snapshot }) {
-  const bouncePct = snapshot.bounceRate.current * 100;
-  const priorBouncePct = snapshot.bounceRate.prior * 100;
-
-  return (
-    <section className="mt-16 print:break-inside-avoid md:mt-20">
-      <SectionHeader
-        source="Google Analytics"
-        sourceDescription="Website analytics (GA4)"
-        title="Website"
-      />
-      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricRow
-          label="Sessions"
-          value={formatNumber(snapshot.sessions.current)}
-          prior={formatNumber(snapshot.sessions.prior)}
-          deltaPct={snapshot.sessions.deltaPct}
-        />
-        <MetricRow
-          label="Users"
-          value={formatNumber(snapshot.users.current)}
-          prior={formatNumber(snapshot.users.prior)}
-          deltaPct={snapshot.users.deltaPct}
-        />
-        <MetricRow
-          label="Avg. session"
-          value={formatDuration(snapshot.avgSessionDurationSec.current)}
-          prior={formatDuration(snapshot.avgSessionDurationSec.prior)}
-          deltaPct={
-            snapshot.avgSessionDurationSec.prior
-              ? ((snapshot.avgSessionDurationSec.current -
-                  snapshot.avgSessionDurationSec.prior) /
-                  snapshot.avgSessionDurationSec.prior) *
-                100
-              : null
-          }
-        />
-        <MetricRow
-          label="Bounce rate"
-          value={formatPercent(bouncePct)}
-          prior={formatPercent(priorBouncePct)}
-          deltaPct={
-            priorBouncePct
-              ? ((bouncePct - priorBouncePct) / priorBouncePct) * 100
-              : null
-          }
-          positiveIsGood={false}
-        />
-      </div>
-
-      <div className="mt-10 grid gap-8 md:grid-cols-2">
-        <div>
-          <h3 className="font-display text-lg">Top landing pages</h3>
-          <ul className="mt-4 divide-y rounded-xl border bg-card">
-            {snapshot.topLandingPages.slice(0, 5).map((page, i) => (
-              <li
-                key={`${page.path}-${i}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
-              >
-                <div className="min-w-0 flex-1">
-                  <span className="mr-2 font-mono text-xs text-muted-foreground">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="truncate font-mono text-foreground">
-                    {page.path || "(none)"}
-                  </span>
-                </div>
-                <span className="mono-nums shrink-0 text-muted-foreground">
-                  {formatNumber(page.sessions)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-display text-lg">Top traffic sources</h3>
-          <ul className="mt-4 divide-y rounded-xl border bg-card">
-            {snapshot.topSources.slice(0, 5).map((src, i) => {
-              const total = snapshot.sessions.current || 1;
-              const share = (src.sessions / total) * 100;
-              return (
-                <li
-                  key={`${src.source}-${i}`}
-                  className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
-                >
-                  <div className="min-w-0 flex-1">
-                    <span className="mr-2 font-mono text-xs text-muted-foreground">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="truncate text-foreground">
-                      {src.source || "(direct)"}
-                    </span>
-                  </div>
-                  <span className="mono-nums shrink-0 text-muted-foreground">
-                    {formatNumber(src.sessions)}{" "}
-                    <span className="text-muted-foreground/70">
-                      · {share.toFixed(0)}%
-                    </span>
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TypeformSection({ snapshot }: { snapshot: TypeformSnapshot }) {
-  const recent = snapshot.leads.slice(0, 10);
-  return (
-    <section className="mt-16 print:break-inside-avoid md:mt-20">
-      <SectionHeader
-        source="Typeform"
-        sourceDescription="Form builder + responses"
-        title="Leads"
-      />
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <MetricRow
-          label="New leads"
-          value={formatNumber(snapshot.totalLeads.current)}
-          prior={formatNumber(snapshot.totalLeads.prior)}
-          deltaPct={snapshot.totalLeads.deltaPct}
-        />
-        <div className="flex flex-col justify-center rounded-xl border bg-card p-5 text-sm text-muted-foreground">
-          <p className="font-display text-base text-foreground">
-            {snapshot.totalLeads.delta > 0
-              ? `${snapshot.totalLeads.delta} more lead${snapshot.totalLeads.delta === 1 ? "" : "s"} than last period.`
-              : snapshot.totalLeads.delta < 0
-                ? `${Math.abs(snapshot.totalLeads.delta)} fewer lead${Math.abs(snapshot.totalLeads.delta) === 1 ? "" : "s"} than last period.`
-                : "Same lead volume as last period."}
-          </p>
-          <p className="mt-1">
-            Form submissions captured via Typeform, pulled directly from the
-            form's live response feed.
-          </p>
-        </div>
-      </div>
-      {recent.length > 0 ? (
-        <div className="mt-10">
-          <h3 className="font-display text-lg">Recent submissions</h3>
-          <ul className="mt-4 divide-y rounded-xl border bg-card">
-            {recent.map((lead) => (
-              <li
-                key={lead.id}
-                className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm"
-              >
-                <span className="mono-nums w-24 shrink-0 text-xs text-muted-foreground">
-                  {new Date(lead.submittedAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-                <span className="min-w-0 flex-1 truncate text-foreground">
-                  {lead.name ?? "Lead"}
-                </span>
-                <span className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">
-                  {lead.email ?? "(no email)"}
-                </span>
-                {lead.phone ? (
-                  <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">
-                    {lead.phone}
-                  </span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-function ManualSection({
-  data,
+function TopContentTable({
+  pages,
 }: {
-  data: ReportSnapshot["manualChannels"][number];
+  pages: Array<{ path: string; sessions: number; pageviews?: number }>;
 }) {
+  type PageRow = {
+    path: string;
+    title: string;
+    sessions: number;
+    pageviews: number;
+  };
+
+  const rows: PageRow[] = pages.map((p) => ({
+    path: p.path || "/",
+    title: titleFromPath(p.path),
+    sessions: p.sessions,
+    pageviews: p.pageviews ?? p.sessions,
+  }));
+
+  const columns: Column<PageRow>[] = [
+    {
+      key: "title",
+      header: "Title",
+      render: (row) => (
+        <div>
+          <p className="text-sm font-semibold text-foreground">{row.title}</p>
+          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+            {row.path}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "pageviews",
+      header: "Pageviews",
+      align: "right",
+      render: (row) => formatNumber(row.pageviews),
+    },
+    {
+      key: "sessions",
+      header: "Sessions",
+      align: "right",
+      render: (row) => formatNumber(row.sessions),
+    },
+  ];
+
+  return <DataTable columns={columns} rows={rows} />;
+}
+
+function titleFromPath(path: string): string {
+  if (!path || path === "/") return "Home";
+  const cleaned = path.replace(/^\//, "").replace(/\/$/, "").split(/[?#]/)[0];
+  if (!cleaned) return "Home";
+  const last = cleaned.split("/").filter(Boolean).pop() ?? cleaned;
+  return last
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+function LeadsTable({ leads }: { leads: TypeformLead[] }) {
+  const columns: Column<TypeformLead>[] = [
+    {
+      key: "name",
+      header: "Name",
+      render: (lead) => lead.name ?? "Lead",
+    },
+    {
+      key: "contact",
+      header: "Contact",
+      render: (lead) => lead.email ?? lead.phone ?? "—",
+    },
+    {
+      key: "date",
+      header: "Date",
+      render: (lead) =>
+        new Date(lead.submittedAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (lead) => <LeadStatusBadge status={pickLeadStatus(lead)} />,
+    },
+  ];
   return (
-    <section className="mt-16 print:break-inside-avoid md:mt-20">
-      <SectionHeader
-        source={data.source}
-        sourceDescription={data.sourceDescription}
-        title={data.primary.label}
+    <div className="mt-5">
+      <DataTable
+        columns={columns}
+        rows={leads}
+        emptyState={
+          <p className="mt-5 text-sm text-muted-foreground">
+            No form submissions in this period.
+          </p>
+        }
       />
-      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <MetricRow
-          label={data.primary.label}
-          value={data.primary.value}
-          deltaPct={
-            data.primary.delta ? parseFloat(data.primary.delta) : undefined
-          }
-        />
-        {data.secondary.map((s) => (
-          <MetricRow
-            key={s.label}
-            label={s.label}
-            value={s.value}
-            deltaPct={s.delta ? parseFloat(s.delta) : undefined}
-          />
-        ))}
-      </div>
-      {data.notes ? (
-        <p className="mt-6 text-base leading-relaxed text-muted-foreground">
-          {data.notes}
-        </p>
+    </div>
+  );
+}
+
+function EmailSection({ channel }: { channel?: ManualChannelData }) {
+  if (!channel) {
+    return (
+      <EmptyState
+        title="Email channel not configured"
+        body="Add an Omnisend or Klaviyo manual entry to the report (or wire the API integration) to surface open rates, CTR, and best-performing campaign here."
+      />
+    );
+  }
+  const sent = manualSecondary(channel, /sent|emails sent/i) ?? "—";
+  const ctr = manualSecondary(channel, /click|ctr/i) ?? "—";
+  const campaigns = manualSecondary(channel, /campaigns?/i);
+
+  return (
+    <>
+      <MetricGrid>
+        <MetricBox label="Emails Sent" value={sent} />
+        <MetricBox label="Avg Open Rate" value={channel.primary.value} />
+        <MetricBox label="Avg Click-through" value={ctr} />
+        {campaigns ? (
+          <MetricBox label="Campaigns" value={campaigns} />
+        ) : null}
+      </MetricGrid>
+      {channel.notes ? (
+        <CampaignHighlight label="What we learned" value={channel.notes} />
       ) : null}
-    </section>
+    </>
+  );
+}
+
+function AdsSection({ channel }: { channel?: ManualChannelData }) {
+  if (!channel) {
+    return (
+      <EmptyState
+        title="No paid ads channel data"
+        body="Add a Meta Ads or Google Ads manual entry (or wire the API) to surface spend, leads, CPL, and campaign breakdown here."
+      />
+    );
+  }
+  const isOff =
+    channel.primary.value === "$0" ||
+    /not running/i.test(channel.notes ?? "") ||
+    /paused/i.test(channel.primary.note ?? "");
+
+  if (isOff) {
+    return (
+      <>
+        <EmptyState
+          title="Not running paid ads this period"
+          body={channel.notes ?? "When ads resume, spend, leads, and cost-per-lead will populate here."}
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <MetricGrid>
+        <MetricBox label={channel.primary.label} value={channel.primary.value} />
+        {channel.secondary.map((s) => (
+          <MetricBox key={s.label} label={s.label} value={s.value} />
+        ))}
+      </MetricGrid>
+      {channel.notes ? (
+        <CampaignHighlight label="Notes" value={channel.notes} />
+      ) : null}
+    </>
+  );
+}
+
+function OrganicSocialSection({
+  instagram,
+  facebook,
+  linkedin,
+}: {
+  instagram?: ManualChannelData;
+  facebook?: ManualChannelData;
+  linkedin?: ManualChannelData;
+}) {
+  type Platform = {
+    name: string;
+    iconLabel: string;
+    iconClassName: string;
+    metrics: Array<{ label: string; value: string }>;
+    notes?: string;
+  };
+
+  const platforms: Platform[] = [];
+  if (instagram) {
+    platforms.push({
+      name: "Instagram",
+      iconLabel: "IG",
+      iconClassName: PLATFORM_STYLES.instagram,
+      metrics: [
+        { label: "Followers", value: instagram.primary.value },
+        ...instagram.secondary.map((s) => ({ label: s.label, value: s.value })),
+      ],
+      notes: instagram.notes,
+    });
+  }
+  if (facebook) {
+    platforms.push({
+      name: "Facebook",
+      iconLabel: "FB",
+      iconClassName: PLATFORM_STYLES.facebook,
+      metrics: [
+        { label: "Page followers", value: facebook.primary.value },
+        ...facebook.secondary.map((s) => ({ label: s.label, value: s.value })),
+      ],
+      notes: facebook.notes,
+    });
+  }
+  if (linkedin) {
+    platforms.push({
+      name: "LinkedIn",
+      iconLabel: "in",
+      iconClassName: PLATFORM_STYLES.linkedin,
+      metrics: [
+        { label: "Page followers", value: linkedin.primary.value },
+        ...linkedin.secondary.map((s) => ({ label: s.label, value: s.value })),
+      ],
+      notes: linkedin.notes,
+    });
+  }
+
+  if (platforms.length === 0) {
+    return (
+      <EmptyState
+        title="No organic social channels configured"
+        body="Add Instagram, Facebook, LinkedIn, or TikTok manual entries (or wire the APIs) to surface posts, reach, engagement, and best-performing content here."
+      />
+    );
+  }
+
+  // Render up to 2 per row; if 3 platforms, fall back to vertical stack on mobile.
+  return (
+    <SocialSplit>
+      {platforms.map((p) => (
+        <SocialPlatform
+          key={p.name}
+          name={p.name}
+          iconLabel={p.iconLabel}
+          iconClassName={p.iconClassName}
+          metrics={p.metrics}
+          notes={p.notes}
+        />
+      ))}
+    </SocialSplit>
   );
 }

@@ -16,8 +16,8 @@ CQ Signal is a marketing reporting and analytics platform built AI-first. It giv
 
 ## Current state
 
-**Version:** v0.12.0 (live in-app data + Signal recommendations on the business dashboard; pending commit)
-**Last committed version:** v0.11.0 (range toggle on reports + SVG logo support)
+**Version:** v0.13.0 (HVOF email-template design translated into the public report; pending commit)
+**Last committed version:** v0.12.0 (live in-app data + Signal recommendations on the business dashboard)
 **Last updated:** 2026-04-23
 
 The app is a Next.js 16 App Router site deployed to Vercel. Pushed to GitHub `main` auto-deploys. Local dev is `pnpm dev` from the `cq-signal/` directory. Dev server listens at `http://localhost:3000`.
@@ -43,15 +43,15 @@ What's still hardcoded:
 
 ## In progress
 
-Nothing active. v0.12.0 changes are on disk, ready to commit.
+Nothing active. v0.13.0 changes are on disk, ready to commit.
 
 ## Immediate next task
 
-1. Commit v0.12.0 (in-app live data + Signal recommendations).
-2. Verify signed-in browser render of `/app/businesses/hudson-valley-office-furniture` shows live numbers on GA4 and Typeform cards, "Live" badges on those cards, and either Signal recommendations or the AI-unavailable fallback message.
-3. If Vercel AI Gateway still returns 403, add a credit card to the Vercel team (Cesar-side action). Once resolved, recommendations will render end-to-end.
-4. After that: Meta + Facebook + Instagram + LinkedIn integrations. Each follows the same pattern as GA4/Typeform — a helper at `src/lib/integrations/<name>.ts` with a `fetch<Name>Snapshot()` that returns a serializable shape with period-over-period delta. Then wire into `resolveCreds()` in `snapshot.ts`.
-5. Later: logo upload via Vercel Blob, PDF export via headless Chromium, Resend for email delivery, MCP server, per-workspace REST API keys.
+1. **Add a credit card to the Vercel team** so the AI Gateway stops returning 403. Without it, the Signal recommendations section on every report renders the empty-state fallback. Chat is also affected. Once the card lands, no code changes needed — calls just start succeeding.
+2. **Verify the public report renders cleanly** at the latest HVOF share URL. Open in a real browser; Signal can't run it locally without Cesar's session.
+3. **Wire the missing integrations** so the empty-state sub-cards in the Traffic section start populating: Search Console (impressions, clicks, top queries), GA4 audience extension (new vs returning + top cities), PageSpeed Insights (Core Web Vitals).
+4. **Wire the manual social/email/ads channels into real APIs** so the Email, Ads, and Organic Social sections stop relying on `manualChannels` data baked into `scripts/generate-hvof-report.ts`. Same pattern as GA4/Typeform — helper at `src/lib/integrations/<name>.ts` with a `fetch<Name>Snapshot()` returning a serializable shape with period-over-period delta. Wire into `resolveCreds()` in `snapshot.ts`.
+5. Later: Vercel Blob for logo uploads, PDF export via headless Chromium (or use the existing print button + browser save-to-PDF), Resend for email delivery, MCP server, per-workspace REST API keys.
 
 ## Environment variables
 
@@ -97,7 +97,8 @@ Version history in [../CHANGELOG.md](../CHANGELOG.md). High level:
 - **v0.9.1.** Typeform integration live with period comparison. HVOF's form-based leads pulling through with name/email extraction.
 - **v0.10.0.** Report system shipped. `generateReport()` fetches GA4 + Typeform + manual channels, stores a versioned snapshot in the `reports` table, generates a 32-char hex share token, returns share URL. Public `/reports/[token]` page renders the snapshot. `scripts/generate-hvof-report.ts` triggers the pipeline offline via `pnpm generate:hvof`. HVOF's first real April MTD report generated and shared.
 - **v0.11.0.** Report snapshot upgraded to v2 schema with `ranges: Record<ReportRangeKey, ReportRangeData>` holding all four (7d / 30d / 90d / 1y) pre-fetched ranges. New client component `<ReportRangeTabs>` mirrors the dashboard's tabs on the public report. Switches via `?range=` query param wrapped in `useTransition` + `router.push`. Manual channels render regardless of range. Business logo now supports SVG (via `dangerouslyAllowSVG` with CSP sandbox on image-optimized responses, and we render business logos as plain `<img>` to avoid the optimizer). `businessProfile` field on `GenerateReportInput` persists `logoUrl` and `brandColor` onto the `businesses` row so reports inherit them.
-- **v0.12.0** (pending commit). Business dashboard at `/app/businesses/[slug]` now pulls live GA4 + Typeform snapshots server-side via `fetchRangeData()`. Cards show real sessions, top source, top landing, avg session duration, and lead counts with period-over-period deltas. Live-data cards get a "Live" pulse badge. Range toggle reuses `<ReportRangeTabs>` and is URL-synced. New `<SignalRecommendations>` async server component calls Claude via `generateText` + `Output.object()` with a zod schema to return 2 or 3 prescriptive, data-grounded action items with priority labels. Shared snapshot helper extracted to `src/lib/reports/snapshot.ts` so the report generator and the dashboard share the exact same fetch logic.
+- **v0.12.0.** Business dashboard at `/app/businesses/[slug]` now pulls live GA4 + Typeform snapshots server-side via `fetchRangeData()`. Cards show real sessions, top source, top landing, avg session duration, and lead counts with period-over-period deltas. Live-data cards get a "Live" pulse badge. Range toggle reuses `<ReportRangeTabs>` and is URL-synced. New `<SignalRecommendations>` async server component calls Claude via `generateText` + `Output.object()` with a zod schema to return 2 or 3 prescriptive, data-grounded action items with priority labels. Shared snapshot helper extracted to `src/lib/reports/snapshot.ts` so the report generator and the dashboard share the exact same fetch logic.
+- **v0.13.0** (pending commit). Public `/reports/[token]` rewritten to match the proven HVOF email-report design (`hvof-weekly-report-SAMPLE.html` from the Dropbox archive). Same section order: Summary, Traffic, Leads, Email, Ads, Social, Recommendations. Same dark gradient header with CQ logo + month-to-date badge + client logo. Same brand-red top stripe. Same gold-rule Executive Summary. Same conic-gradient channel donut + SVG sparkline. Same dark-headed data tables. Same numbered red-circle recommendations. Same dark footer with confidential strapline. New `src/components/report/` folder with focused, reusable primitives. GA4 snapshot extended with `channelBreakdown` (sessionDefaultChannelGroup) and `dailySessions` (per-day series) so the donut and trend chart have real data. Empty states for sections that need integrations not yet wired (Search Console, Web Vitals, New vs Returning + cities). Reuses existing `--brand` and `--signal` tokens.
 
 ## Key decisions and constraints
 
@@ -161,7 +162,8 @@ pnpm generate:hvof
 - `src/lib/reports/snapshot.ts` — shared `fetchRangeData(slug, key)` + `fetchAllRanges(slug)` helpers. Both the report generator and the in-app dashboard call these.
 - `src/lib/reports/recommendations.ts` — Claude-powered `generateRecommendations()` returning 2 or 3 prescriptive action items with zod-typed output.
 - `src/lib/reports/generate.ts` — report pipeline (fetch via shared helper + snapshot v2 + persist + share token).
-- `src/app/reports/[token]/page.tsx` — public report page, range-aware via `?range=`.
+- `src/app/reports/[token]/page.tsx` — public report page, range-aware via `?range=`. Composes `src/components/report/*` primitives in the HVOF email-template section order.
+- `src/components/report/` — full primitive library for the report page (header, section nav, section card, sub-card, metric grid, hero metric, channel donut, trend chart, data table, lead status badge, campaign highlight, social split, core web vitals, recommendations list, footer, empty state, print button).
 - `src/app/app/businesses/[slug]/page.tsx` — signed-in business dashboard. Fetches live data each render.
 - `src/components/report-range-tabs.tsx` — the URL-synced toggle, reused on report page and business dashboard.
 - `src/components/signal-recommendations.tsx` — async server component that renders Claude's recommendations with priority badges and expected-outcome lines.

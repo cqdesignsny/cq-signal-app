@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.13.0 · 2026-04-23 · HVOF email-template design translated to the public report
+
+- Public `/reports/[token]` page rewritten to match the proven HVOF email-report design we built earlier (`hvof-weekly-report-SAMPLE.html`). Same section order (Summary, Traffic, Leads, Email, Ads, Social, Recommendations), same dark gradient header with CQ logo + month-to-date badge + client logo, same brand-red top stripe, same gold-accented executive summary with left rule, same conic-gradient channel donut + SVG sparkline trend, same dark-headed data tables, same numbered red-circle recommendations, same dark footer with the "Confidential — Prepared exclusively for [client]" line.
+- New `src/components/report/` folder with focused primitives, all server components except the sticky section nav and print button:
+  - `top-stripe.tsx` — 4px brand-red bar across the top.
+  - `report-header.tsx` — dark gradient hero card with CQ logo, period badge, "Marketing Report", "Prepared for", client logo (or fallback chip), and the red→gold→red bottom gradient stripe.
+  - `section-nav.tsx` (client) — sticky numbered nav with active-on-scroll highlighting.
+  - `section-card.tsx` + `section-group.tsx` + sub-card for the standalone vs grouped section layouts.
+  - `metric-grid.tsx` + `metric-box.tsx` for the auto-fit metric tiles with delta pills.
+  - `hero-metric.tsx` for the big-number + delta + chart hero used on the All Visitors sub-card.
+  - `channel-donut.tsx` — conic-gradient donut + legend, with a built-in palette and per-channel color override (Direct, Organic Search, Paid Search, Email, Social, etc.).
+  - `trend-chart.tsx` — pure SVG sparkline with area fill + optional dashed prior-period overlay.
+  - `data-table.tsx` — dark-headed, alternating-row table with right-aligned numeric columns.
+  - `lead-status-badge.tsx` (New / Contacted / No Response).
+  - `campaign-highlight.tsx` for the gold left-bordered "best campaign" callout.
+  - `social-split.tsx` + `social-platform.tsx` for the 2-up Instagram + Facebook + LinkedIn block with platform-coloured logo chips.
+  - `core-web-vitals.tsx` for the 3-up Good / Needs work / Poor / Gathering data grid.
+  - `recommendations-list.tsx` for the numbered red-circle list, with optional "Expect" trailing line.
+  - `report-footer.tsx` — dark footer with CQ Signal logo + Creative Quality Marketing attribution + confidential strapline.
+  - `empty-state.tsx` for sections that need integrations that aren't wired yet (Search Console, Web Vitals, etc.).
+  - `print-button.tsx` (client) for the "Print or save as PDF" action that survives RSC.
+- GA4 fetcher (`src/lib/integrations/ga4.ts`) now also pulls `sessionDefaultChannelGroup` and a daily `date` series. Adds `channelBreakdown` and `dailySessions` to `GA4Snapshot`. Top landing pages now also include `pageviews` for a richer "Top Content" table.
+- Recommendations now render directly in the report's section 7 via `generateRecommendations()` (Claude through the AI Gateway), with the same priority + rationale + expected-outcome shape as the in-app dashboard. Falls back to a graceful empty state when the gateway is gated on billing.
+- Sections render with empty states and helpful "what would land here once X is wired" copy when an integration isn't connected — Search Console, New vs Returning visitors with cities, Core Web Vitals.
+- Uses existing `--brand` (red) and `--signal` (gold) tokens. No new theme tokens needed.
+
 ## v0.12.0 · 2026-04-23 · Live in-app data + Signal recommendations
 
 - Business dashboard at `/app/businesses/[slug]` now fetches live GA4 + Typeform snapshots server-side via the shared `fetchRangeData()` helper. HVOF's sessions, top source, top landing, session duration, and lead counts render on the at-a-glance cards with real numbers, not placeholders. Each card that backs a live integration gets a "Live" pulse badge.

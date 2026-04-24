@@ -28,8 +28,10 @@ export type GA4Snapshot = {
   users: { current: number; prior: number; delta: number; deltaPct: number };
   avgSessionDurationSec: { current: number; prior: number };
   bounceRate: { current: number; prior: number };
-  topLandingPages: Array<{ path: string; sessions: number }>;
+  topLandingPages: Array<{ path: string; sessions: number; pageviews?: number }>;
   topSources: Array<{ source: string; sessions: number }>;
+  channelBreakdown: Array<{ channel: string; sessions: number; pct: number }>;
+  dailySessions: Array<{ date: string; sessions: number }>;
   fetchedAt: string;
 };
 
@@ -131,31 +133,51 @@ export async function fetchGA4Snapshot(
 ): Promise<GA4Snapshot> {
   const prior = computePriorRange(startDate, endDate);
 
-  const [coreCurrent, corePrior, topPagesResult, topSourcesResult] =
-    await Promise.all([
-      runGA4Report(propertyId, {
-        dateRanges: [{ startDate, endDate }],
-        metrics: CORE_METRICS,
-      }),
-      runGA4Report(propertyId, {
-        dateRanges: [{ startDate: prior.startDate, endDate: prior.endDate }],
-        metrics: CORE_METRICS,
-      }),
-      runGA4Report(propertyId, {
-        dateRanges: [{ startDate, endDate }],
-        dimensions: [{ name: "landingPagePlusQueryString" }],
-        metrics: [{ name: "sessions" }],
-        orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
-        limit: 5,
-      }),
-      runGA4Report(propertyId, {
-        dateRanges: [{ startDate, endDate }],
-        dimensions: [{ name: "sessionSource" }],
-        metrics: [{ name: "sessions" }],
-        orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
-        limit: 5,
-      }),
-    ]);
+  const [
+    coreCurrent,
+    corePrior,
+    topPagesResult,
+    topSourcesResult,
+    channelGroupResult,
+    dailyResult,
+  ] = await Promise.all([
+    runGA4Report(propertyId, {
+      dateRanges: [{ startDate, endDate }],
+      metrics: CORE_METRICS,
+    }),
+    runGA4Report(propertyId, {
+      dateRanges: [{ startDate: prior.startDate, endDate: prior.endDate }],
+      metrics: CORE_METRICS,
+    }),
+    runGA4Report(propertyId, {
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: "landingPagePlusQueryString" }],
+      metrics: [{ name: "sessions" }, { name: "screenPageViews" }],
+      orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+      limit: 10,
+    }),
+    runGA4Report(propertyId, {
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: "sessionSource" }],
+      metrics: [{ name: "sessions" }],
+      orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+      limit: 10,
+    }),
+    runGA4Report(propertyId, {
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: "sessionDefaultChannelGroup" }],
+      metrics: [{ name: "sessions" }],
+      orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+      limit: 10,
+    }),
+    runGA4Report(propertyId, {
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: "date" }],
+      metrics: [{ name: "sessions" }],
+      orderBys: [{ dimension: { dimensionName: "date" } }],
+      limit: 400,
+    }),
+  ]);
 
   const currentRow = coreCurrent.rows?.[0];
   const priorRow = corePrior.rows?.[0];
@@ -192,11 +214,32 @@ export async function fetchGA4Snapshot(
     topLandingPages: (topPagesResult.rows ?? []).map((r) => ({
       path: r.dimensionValues?.[0]?.value ?? "",
       sessions: parseFloat(r.metricValues?.[0]?.value ?? "0"),
+      pageviews: parseFloat(r.metricValues?.[1]?.value ?? "0"),
     })),
     topSources: (topSourcesResult.rows ?? []).map((r) => ({
       source: r.dimensionValues?.[0]?.value ?? "",
       sessions: parseFloat(r.metricValues?.[0]?.value ?? "0"),
     })),
+    channelBreakdown: buildChannelBreakdown(channelGroupResult, sessionsCurrent),
+    dailySessions: (dailyResult.rows ?? []).map((r) => ({
+      date: r.dimensionValues?.[0]?.value ?? "",
+      sessions: parseFloat(r.metricValues?.[0]?.value ?? "0"),
+    })),
     fetchedAt: new Date().toISOString(),
   };
+}
+
+function buildChannelBreakdown(
+  result: GA4ReportResponse,
+  totalSessions: number,
+): Array<{ channel: string; sessions: number; pct: number }> {
+  const total = totalSessions || 1;
+  return (result.rows ?? []).map((r) => {
+    const sessions = parseFloat(r.metricValues?.[0]?.value ?? "0");
+    return {
+      channel: r.dimensionValues?.[0]?.value ?? "(other)",
+      sessions,
+      pct: (sessions / total) * 100,
+    };
+  });
 }
