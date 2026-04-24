@@ -1,5 +1,48 @@
 # Changelog
 
+## v0.15.0 · 2026-04-23 · Dashboard polish + functional Share menu + connect flow + Profile persistence + theme toggle on report
+
+**Brand-agnostic copy** — every user-facing mention of "Claude" stripped from marketing page, settings/agents page, markdown export prompts, and dashboard subhead. Internal model strings stay (`anthropic/claude-sonnet-4.6` in route handlers). The product now reads as model-agnostic so swapping the underlying brain is a private detail.
+
+**Dashboard reorganization** at `/app/businesses/[slug]`:
+
+- Range tabs (7d / 30d / 90d / 1y) + section header **moved above the Traffic Overview** so they scope everything below: traffic hero, channel cards, all of it. Title is range-aware: "30 days at a glance," "7 days at a glance," etc.
+- **TrafficOverviewCard now carries a "Live" pulse badge** to match the channel-card pattern.
+- **CardManageAction** appears in the lower-right of every channel card on hover. Verb adapts to the card's state ("Connect" for empty, "Connect live" for manual, "Reconnect" for live). Links to `/app/businesses/[slug]/connect/[integration]`.
+- **AddFeedTile** at the end of the cards grid — dashed-border tile with a `+` glyph; opens the connector picker.
+- New **"Not connected" pill** for cards with no live or manual data, complementing the existing "Live" and "Manual" pills.
+
+**Connect flow** (placeholder for the OAuth wave):
+
+- `/app/businesses/[slug]/connect` — picker page. Lists every integration in the catalog, marks the ones already added to this business, links each to the per-integration connect page.
+- `/app/businesses/[slug]/connect/[integration]` — per-integration page with two side-by-side cards: "Live API feed" (CTA disabled with honest "coming" copy) and "Manual data" (shows what's currently wired if any, with a clear pointer to `src/lib/manual-data.ts` until the in-app editor lands). Includes a teaser for the screenshot-extraction flow.
+
+**Create Report opens in a new tab.** `createReportForBusiness` Server Action now returns `{ shareToken, shareUrl }` instead of redirecting. The `<CreateReportButton>` client component awaits the result, opens it in a new tab via `window.open(..., '_blank')`, falls back to same-tab navigation if popups are blocked, and refreshes the dashboard so report history picks up the new entry.
+
+**Share Report menu is now functional:**
+
+- **Copy share link** — Server Action `latestShareTokenForBusiness(slug)` looks up the most recent generated report and the client copies `https://cq-signal-app.vercel.app/reports/[token]` to the clipboard. Fall back to a `prompt()` if the Clipboard API isn't available.
+- **Download PDF (print view)** — opens the report in a new tab with `?print=1` which auto-fires `window.print()` after a short delay (chart render). Browser's "Save as PDF" produces a clean printable. A real react-pdf template is on the queue; this is a clean interim that produces something usable today.
+- **Email to client** — kept as "Soon" with honest copy. Resend wire is the next infra wave.
+- **No-report-yet** path: alerts the user to hit Create report first if no reports exist for the business.
+
+**Theme toggle on the public report.** A `<ThemeToggle>` lives in the report's controls strip alongside the range tabs and Print button. Recipients can flip light/dark on the share URL.
+
+**Edit Profile actually persists:**
+
+- New Server Action `saveBusinessProfile(prevState, formData)` writes name, shortName, tagline, vertical, brandColor, and logoUrl to the `businesses` table.
+- Profile page now reads persisted DB values (with seed fallback) so edits stick across reloads.
+- Logo upload flow: paste a URL for now (PNG, JPEG, SVG all supported via the existing `next.config.ts` SVG allowlist). File-upload via Vercel Blob is wired as the next step but not enabled in this wave.
+
+**Typeform table fixes** (per Cesar's screenshot):
+
+- Dropped the email column.
+- Added Date (left), Name, Company, "What they need" (the first narrative answer), Status (right).
+- Typeform extractor now also pulls `company` (matches `company`, `business`, `organization`, `org`, `firm`) and `message` (longest narrative answer or fields matching `message`, `question`, `details`, `project`, `need`, `inquiry`, `describe`).
+- Same column shape on both `/app/businesses/[slug]/typeform` and the public report's Leads section.
+
+**Auto-print for the report**: new `<PrintOnLoad>` client component reads `?print=1` from the URL and fires `window.print()` after 800ms. Used by the Share menu's "Download PDF" path.
+
 ## v0.14.0 · 2026-04-23 · Report aesthetic rework + dashboard upgrade + Google Ads + report history
 
 **Report aesthetic** — dropped the email-template look (dark gradient header, brand-red top stripe, dark slab footer, heavy black table headers, oversized red numbered chips). Public `/reports/[token]` now matches the app's premium editorial feel:

@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { generateReport } from "@/lib/reports/generate";
 import { getBusiness } from "@/lib/businesses";
@@ -49,7 +48,11 @@ function manualChannelsFor(slug: string): ManualChannelData[] {
   return out;
 }
 
-export async function createReportForBusiness(formData: FormData) {
+export type CreateReportResult = { shareToken: string; shareUrl: string };
+
+export async function createReportForBusiness(
+  formData: FormData,
+): Promise<CreateReportResult> {
   const { userId } = await auth();
   if (!userId) throw new Error("Not authorized");
 
@@ -70,5 +73,5 @@ export async function createReportForBusiness(formData: FormData) {
         : undefined,
   });
 
-  redirect(`/reports/${result.shareToken}`);
+  return { shareToken: result.shareToken, shareUrl: result.shareUrl };
 }

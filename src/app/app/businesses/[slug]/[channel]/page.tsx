@@ -135,7 +135,10 @@ export default async function ChannelPage({ params, searchParams }: Props) {
           <h1 className="font-display text-4xl tracking-tight md:text-6xl">
             {detail.title}
           </h1>
-          <ShareReportMenu businessName={`${business.name} ${card.source}`} />
+          <ShareReportMenu
+            businessSlug={business.slug}
+            businessName={business.name}
+          />
         </div>
         <p className="max-w-2xl text-base text-muted-foreground md:text-lg">
           {detail.description}
@@ -322,47 +325,40 @@ function TypeformChannelView({
     );
   }
 
-  type LeadRow = TypeformLead & { firstAnswer?: string };
-  const rows: LeadRow[] = t.leads.slice(0, 25).map((l) => {
-    const answers = Object.values(l.fields ?? {});
-    const firstAnswer = answers.find((v) => v && v.length > 0 && v.length < 280);
-    return { ...l, firstAnswer };
-  });
+  const rows = t.leads.slice(0, 25);
 
-  const columns: Column<LeadRow>[] = [
-    {
-      key: "name",
-      header: "Name",
-      render: (row) => row.name ?? "—",
-    },
-    {
-      key: "contact",
-      header: "Contact",
-      render: (row) => (
-        <span className="font-mono text-[12px]">
-          {row.email ?? row.phone ?? "—"}
-        </span>
-      ),
-    },
-    {
-      key: "answer",
-      header: "What they said",
-      render: (row) => (
-        <span className="block max-w-[340px] truncate text-muted-foreground">
-          {row.firstAnswer ?? "—"}
-        </span>
-      ),
-    },
+  const columns: Column<TypeformLead>[] = [
     {
       key: "date",
-      header: "Submitted",
-      align: "right",
+      header: "Date",
+      width: "92px",
       render: (row) => (
         <span className="mono-nums text-xs">
           {new Date(row.submittedAt).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
           })}
+        </span>
+      ),
+    },
+    {
+      key: "name",
+      header: "Name",
+      render: (row) => row.name ?? "—",
+    },
+    {
+      key: "company",
+      header: "Company",
+      render: (row) => (
+        <span className="text-muted-foreground">{row.company ?? "—"}</span>
+      ),
+    },
+    {
+      key: "message",
+      header: "What they need",
+      render: (row) => (
+        <span className="block max-w-[420px] truncate text-muted-foreground">
+          {row.message ?? "—"}
         </span>
       ),
     },

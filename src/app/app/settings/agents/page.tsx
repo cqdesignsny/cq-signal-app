@@ -36,7 +36,7 @@ export default function AgentsSettingsPage() {
             <FileCode2 className="size-5 text-foreground" />
             <CardTitle className="font-display text-lg">Markdown briefs</CardTitle>
             <CardDescription>
-              Live now. Pull a formatted brief from any business page and paste into Claude, Gemini, ChatGPT, or your own agent.
+              Live now. Pull a formatted brief from any business page and paste into Gemini, ChatGPT, or your own agent.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -54,7 +54,7 @@ export default function AgentsSettingsPage() {
             <Bot className="size-5 text-foreground" />
             <CardTitle className="font-display text-lg">MCP server</CardTitle>
             <CardDescription>
-              Coming next. Built-in Model Context Protocol endpoint so Claude Code and any MCP-capable agent can query Signal live.
+              Coming next. Built-in Model Context Protocol endpoint so any MCP-capable agent can query Signal live.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -119,7 +119,7 @@ GET /api/businesses/{slug}/export?format=md&range=1m`}
               <li><code>get_leads(slug, range)</code></li>
             </ul>
             <p className="text-muted-foreground">
-              Your Claude Code, Gemini CLI, or custom agent becomes your marketing analyst with full read access to live data. Agent writes back recommendations and Signal logs them so the conversation carries forward.
+              Your Gemini CLI, ChatGPT-with-MCP, or custom agent becomes your marketing analyst with full read access to live data. Agent writes back recommendations and Signal logs them so the conversation carries forward.
             </p>
           </CardContent>
         </Card>

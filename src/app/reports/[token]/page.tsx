@@ -13,6 +13,8 @@ import {
 } from "@/lib/reports/recommendations";
 import { ReportRangeTabs } from "@/components/report-range-tabs";
 import { ReportHeader } from "@/components/report/report-header";
+import { PrintOnLoad } from "@/components/report/print-on-load";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { SectionNav, type SectionNavItem } from "@/components/report/section-nav";
 import { SectionCard } from "@/components/report/section-card";
 import { SectionGroup, SubCard } from "@/components/report/section-group";
@@ -235,8 +237,12 @@ async function ReportView({
             defaultRange={snapshot.primaryRange}
           />
         </div>
-        <PrintButton />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <PrintButton />
+        </div>
       </div>
+      <PrintOnLoad />
 
       <SectionNav items={navItems} />
 
@@ -577,27 +583,43 @@ function titleFromPath(path: string): string {
 function LeadsTable({ leads }: { leads: TypeformLead[] }) {
   const columns: Column<TypeformLead>[] = [
     {
+      key: "date",
+      header: "Date",
+      width: "92px",
+      render: (lead) => (
+        <span className="mono-nums text-xs">
+          {new Date(lead.submittedAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}
+        </span>
+      ),
+    },
+    {
       key: "name",
       header: "Name",
       render: (lead) => lead.name ?? "Lead",
     },
     {
-      key: "contact",
-      header: "Contact",
-      render: (lead) => lead.email ?? lead.phone ?? "—",
+      key: "company",
+      header: "Company",
+      render: (lead) => (
+        <span className="text-muted-foreground">{lead.company ?? "—"}</span>
+      ),
     },
     {
-      key: "date",
-      header: "Date",
-      render: (lead) =>
-        new Date(lead.submittedAt).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
+      key: "message",
+      header: "What they need",
+      render: (lead) => (
+        <span className="block max-w-[420px] truncate text-muted-foreground">
+          {lead.message ?? "—"}
+        </span>
+      ),
     },
     {
       key: "status",
       header: "Status",
+      align: "right",
       render: (lead) => <LeadStatusBadge status={pickLeadStatus(lead)} />,
     },
   ];

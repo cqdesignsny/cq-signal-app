@@ -75,9 +75,15 @@ export function TrafficOverviewCard({ businessSlug, ga4, rangeLabel }: Props) {
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-            Find out how your audience is growing
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+              Find out how your audience is growing
+            </p>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-brand ring-1 ring-inset ring-brand/30">
+              <span className="size-1.5 rounded-full bg-brand" />
+              Live
+            </span>
+          </div>
           <h2 className="mt-2 font-display text-2xl tracking-tight md:text-3xl">
             Traffic over the last {rangeLabel.toLowerCase()}
           </h2>

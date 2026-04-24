@@ -38,6 +38,9 @@ export type TypeformLead = {
   name?: string;
   email?: string;
   phone?: string;
+  company?: string;
+  /** First narrative answer captured (e.g. "what they're looking for"). */
+  message?: string;
   fields: Record<string, string>;
 };
 
@@ -83,9 +86,13 @@ async function fetchResponsesPage(
 
 function extractLead(r: TypeformRawResponse): TypeformLead {
   const fields: Record<string, string> = {};
+  // Track ordered narrative answers so we can pick "what they're looking for"
+  // as the first long text field that isn't name / email / phone / company.
+  const narrativeKeys = new Set<string>();
   let name: string | undefined;
   let email: string | undefined;
   let phone: string | undefined;
+  let company: string | undefined;
 
   for (const answer of r.answers ?? []) {
     const key = answer.field?.ref || answer.field?.id || "unknown";
@@ -96,6 +103,7 @@ function extractLead(r: TypeformRawResponse): TypeformLead {
       case "short_text":
       case "long_text":
         value = answer.text;
+        if (answer.type === "long_text") narrativeKeys.add(key);
         break;
       case "email":
         value = answer.email;
@@ -125,9 +133,12 @@ function extractLead(r: TypeformRawResponse): TypeformLead {
 
     if (value != null && value !== "") {
       fields[key] = value;
-      if (!name && /name|full.?name|first/i.test(key)) name = value;
-      if (!email && (answer.type === "email" || /email/i.test(key))) email = value;
-      if (!phone && (answer.type === "phone_number" || /phone/i.test(key))) phone = value;
+      const k = key.toLowerCase();
+      if (!name && /name|first|last/.test(k)) name = value;
+      if (!email && (answer.type === "email" || /email/.test(k))) email = value;
+      if (!phone && (answer.type === "phone_number" || /phone/.test(k))) phone = value;
+      if (!company && /company|business|organization|org|firm/.test(k))
+        company = value;
     }
   }
 
@@ -141,12 +152,44 @@ function extractLead(r: TypeformRawResponse): TypeformLead {
     }
   }
 
+  // First narrative answer = "what they were looking for / asked for".
+  // Prefer long_text fields. Fall back to any field that looks like a
+  // message / question / details / project answer.
+  let message: string | undefined;
+  for (const k of narrativeKeys) {
+    if (fields[k]) {
+      message = fields[k];
+      break;
+    }
+  }
+  if (!message) {
+    for (const [k, v] of Object.entries(fields)) {
+      if (/message|question|details|project|need|inquiry|describe|how can/i.test(k) && v) {
+        message = v;
+        break;
+      }
+    }
+  }
+  // Last fallback: longest free-text answer that isn't an identifier.
+  if (!message) {
+    const candidates = Object.entries(fields).filter(
+      ([, v]) =>
+        v.length > 20 &&
+        !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) &&
+        !/^\+?\d[\d\s().-]{6,}$/.test(v),
+    );
+    candidates.sort(([, a], [, b]) => b.length - a.length);
+    message = candidates[0]?.[1];
+  }
+
   return {
     id: r.token,
     submittedAt: r.submitted_at,
     name,
     email,
     phone,
+    company,
+    message,
     fields,
   };
 }

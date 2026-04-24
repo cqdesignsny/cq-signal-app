@@ -20,7 +20,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export const metadata = {
   title: "CQ Signal — Marketing intelligence for the AI era",
   description:
-    "Connect every platform your business runs on, centralize the data into clean dashboards, and ship it to your AI stack in a format Claude, Gemini, and ChatGPT can actually use.",
+    "Connect every platform your business runs on, centralize the data into clean dashboards, and ship it to your AI stack in a format Gemini, ChatGPT, and your own agents can actually use.",
 };
 
 const howItWorks = [
@@ -42,7 +42,7 @@ const howItWorks = [
   {
     icon: Bot,
     title: "Ship to your own AI",
-    body: "Every business exports as a Markdown brief with prompts included, or connect Claude Code and other agents directly via MCP.",
+    body: "Every business exports as a Markdown brief with prompts included, or connect any MCP-capable agent directly via MCP.",
   },
 ];
 
@@ -53,7 +53,7 @@ const differentiators = [
   },
   {
     title: "Your data stays yours",
-    body: "Markdown exports, REST API, MCP server, JSON. Feed Signal data into Claude, Gemini, ChatGPT, or your own agent. Nothing locked behind a platform wall.",
+    body: "Markdown exports, REST API, MCP server, JSON. Feed Signal data into Gemini, ChatGPT, or your own agent. Nothing locked behind a platform wall.",
   },
   {
     title: "Prescriptive, not just descriptive",
@@ -153,7 +153,7 @@ export default function MarketingPage() {
             <span className="italic">finally</span> ready for AI.
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-            CQ Signal connects every platform your business runs on, centralizes the data into clean dashboards, and ships it to your AI stack in a format Claude, Gemini, and ChatGPT can actually use.
+            CQ Signal connects every platform your business runs on, centralizes the data into clean dashboards, and ships it to your AI stack in a format Gemini, ChatGPT, and your own agents can actually use.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Button
@@ -187,7 +187,7 @@ export default function MarketingPage() {
               You look at the numbers. You close the tab. You move on. The tools that exist were designed before AI was part of anyone's workflow.
             </p>
             <p>
-              Business owners already talk to Claude, Gemini, and ChatGPT about their businesses. To do that, they screenshot dashboards or type numbers into chats by hand. The insight layer and the AI layer live in separate worlds. That ends here.
+              Business owners already talk to Gemini, ChatGPT, and their own agents about their businesses. To do that, they screenshot dashboards or type numbers into chats by hand. The insight layer and the AI layer live in separate worlds. That ends here.
             </p>
           </div>
         </div>

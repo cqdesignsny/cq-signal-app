@@ -1,21 +1,49 @@
 "use client";
 
-import { useTransition } from "react";
-import { FileText, Loader2 } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Check, FileText, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import type { CreateReportResult } from "@/app/app/businesses/[slug]/actions";
 
 type Props = {
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<CreateReportResult>;
   slug: string;
   className?: string;
 };
 
 export function CreateReportButton({ action, slug, className }: Props) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [opened, setOpened] = useState(false);
 
   return (
     <form
-      action={(formData) => startTransition(() => action(formData))}
+      onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        startTransition(async () => {
+          try {
+            const result = await action(formData);
+            const win = window.open(
+              `/reports/${result.shareToken}`,
+              "_blank",
+              "noopener,noreferrer",
+            );
+            if (!win) {
+              // Popup blocker. Fall back to same-tab navigation.
+              window.location.href = `/reports/${result.shareToken}`;
+              return;
+            }
+            setOpened(true);
+            // Refresh the dashboard so report history picks up the new entry.
+            router.refresh();
+            setTimeout(() => setOpened(false), 2400);
+          } catch (err) {
+            console.error("[create-report] failed", err);
+          }
+        });
+      }}
       className={cn("contents", className)}
     >
       <input type="hidden" name="slug" value={slug} />
@@ -30,11 +58,21 @@ export function CreateReportButton({ action, slug, className }: Props) {
         )}
       >
         {isPending ? (
-          <Loader2 className="size-4 animate-spin" />
+          <>
+            <Loader2 className="size-4 animate-spin" />
+            Generating report...
+          </>
+        ) : opened ? (
+          <>
+            <Check className="size-4" />
+            Opened in new tab
+          </>
         ) : (
-          <FileText className="size-4" />
+          <>
+            <FileText className="size-4" />
+            Create report
+          </>
         )}
-        {isPending ? "Generating report..." : "Create report"}
       </button>
     </form>
   );

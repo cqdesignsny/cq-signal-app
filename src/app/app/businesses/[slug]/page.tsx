@@ -23,6 +23,8 @@ import { ReportRangeTabs } from "@/components/report-range-tabs";
 import { SignalRecommendations } from "@/components/signal-recommendations";
 import { TrafficOverviewCard } from "@/components/traffic-overview-card";
 import { CreateReportButton } from "@/components/create-report-button";
+import { CardManageAction } from "@/components/card-manage-action";
+import { AddFeedTile } from "@/components/add-feed-tile";
 import { ReportHistory } from "@/components/report-history";
 import {
   fetchRangeData,
@@ -115,7 +117,7 @@ function liveValuesFor(
         },
         {
           label: "Latest",
-          value: t.leads[0]?.name ?? t.leads[0]?.email ?? "—",
+          value: t.leads[0]?.name ?? t.leads[0]?.company ?? "—",
         },
       ],
     };
@@ -190,7 +192,10 @@ export default async function BusinessPage({ params, searchParams }: Props) {
               businessSlug={business.slug}
               businessName={business.name}
             />
-            <ShareReportMenu businessName={business.name} />
+            <ShareReportMenu
+              businessSlug={business.slug}
+              businessName={business.name}
+            />
           </div>
         </header>
 
@@ -204,17 +209,10 @@ export default async function BusinessPage({ params, searchParams }: Props) {
           range={rangeData}
         />
 
-        {/* 2. Traffic overview — donut + sparkline + delta. Click-through
-            to GA4 channel page for deeper Site Kit-style breakdown. */}
-        <TrafficOverviewCard
-          businessSlug={business.slug}
-          ga4={rangeData.ga4}
-          rangeLabel={rangeCfg.label}
-        />
-
-        {/* 3. The rest of the channels at a glance. */}
-        <section className="space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* 2. Range header lives above traffic so it scopes EVERYTHING below
+            (Traffic Overview + cards grid). */}
+        <section className="space-y-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="font-display text-2xl tracking-tight md:text-3xl">
                 {rangeCfg.label} at a glance
@@ -231,6 +229,15 @@ export default async function BusinessPage({ params, searchParams }: Props) {
               defaultRange={DEFAULT_RANGE}
             />
           </div>
+
+          {/* 2a. Traffic overview hero. */}
+          <TrafficOverviewCard
+            businessSlug={business.slug}
+            ga4={rangeData.ga4}
+            rangeLabel={rangeCfg.label}
+          />
+
+          {/* 2b. The rest of the channels at a glance. */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {otherIntegrations.map((key) => {
               const config = channelCards[key];
@@ -242,13 +249,19 @@ export default async function BusinessPage({ params, searchParams }: Props) {
               const secondary = overlay?.secondary ?? config.secondary;
               const isLive = Boolean(live);
               const isManual = !isLive && Boolean(manual);
+              const cardState: "live" | "manual" | "empty" = isLive
+                ? "live"
+                : isManual
+                  ? "manual"
+                  : "empty";
               return (
-                <Link
-                  key={key}
-                  href={`/app/businesses/${business.slug}/${key}`}
-                  className="group"
-                >
-                  <Card className="card-lift relative h-full group-hover:ring-2 group-hover:ring-brand/45">
+                <div key={key} className="group relative">
+                  <Link
+                    href={`/app/businesses/${business.slug}/${key}`}
+                    aria-label={`Open ${config.source}`}
+                    className="absolute inset-0 z-10 rounded-xl"
+                  />
+                  <Card className="card-lift relative h-full pointer-events-none group-hover:ring-2 group-hover:ring-brand/45">
                     {isLive ? (
                       <span className="pointer-events-none absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-brand ring-1 ring-inset ring-brand/30">
                         <span className="size-1.5 rounded-full bg-brand" />
@@ -258,7 +271,11 @@ export default async function BusinessPage({ params, searchParams }: Props) {
                       <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground ring-1 ring-inset ring-border">
                         Manual
                       </span>
-                    ) : null}
+                    ) : (
+                      <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-muted/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground/70 ring-1 ring-inset ring-border/60">
+                        Not connected
+                      </span>
+                    )}
                     <CardHeader className="gap-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 space-y-0.5">
@@ -298,13 +315,19 @@ export default async function BusinessPage({ params, searchParams }: Props) {
                       ) : null}
                     </CardContent>
                   </Card>
-                </Link>
+                  <CardManageAction
+                    slug={business.slug}
+                    integration={key}
+                    state={cardState}
+                  />
+                </div>
               );
             })}
+            <AddFeedTile slug={business.slug} />
           </div>
         </section>
 
-        {/* 4. Past reports for this business. */}
+        {/* 3. Past reports for this business. */}
         <ReportHistory slug={business.slug} />
       </div>
 
