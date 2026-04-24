@@ -17,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { SidebarThemeToggle } from "@/components/sidebar-theme-toggle";
 import { businesses } from "@/lib/businesses";
@@ -29,32 +30,44 @@ const navItems = [
 ];
 
 export function AppSidebar() {
+  return (
+    <Sidebar variant="inset" collapsible="icon">
+      <AppSidebarBody />
+    </Sidebar>
+  );
+}
+
+function AppSidebarBody() {
   const pathname = usePathname();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <Sidebar variant="inset" collapsible="icon">
+    <>
       <SidebarHeader>
-        <Link href="/app" className="flex items-center gap-2 px-1 py-1">
-          <Image
-            src="/cq-signal-logo.png"
-            alt="CQ Signal"
-            width={200}
-            height={170}
-            className="block h-10 w-auto max-w-[170px] object-contain object-left dark:hidden"
-            priority
-          />
-          <Image
-            src="/cq-signal-logo-dark.png"
-            alt="CQ Signal"
-            width={200}
-            height={170}
-            className="hidden h-10 w-auto max-w-[170px] object-contain object-left dark:block"
-            priority
-          />
-        </Link>
+        {isCollapsed ? null : (
+          <Link href="/app" className="flex items-center gap-2 px-1 py-1">
+            <Image
+              src="/cq-signal-logo.png"
+              alt="CQ Signal"
+              width={200}
+              height={170}
+              className="block h-10 w-auto max-w-[170px] object-contain object-left dark:hidden"
+              priority
+            />
+            <Image
+              src="/cq-signal-logo-dark.png"
+              alt="CQ Signal"
+              width={200}
+              height={170}
+              className="hidden h-10 w-auto max-w-[170px] object-contain object-left dark:block"
+              priority
+            />
+          </Link>
+        )}
       </SidebarHeader>
 
       <SidebarContent>
@@ -122,12 +135,14 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <SidebarThemeToggle />
-        <div className="px-2 pb-1 text-[11px] leading-tight text-muted-foreground">
-          <span className="font-display text-foreground">CQ Signal</span>
-          <span className="mx-1.5">·</span>
-          <span>Internal · v0.3</span>
-        </div>
+        {!isCollapsed ? (
+          <div className="px-2 pb-1 text-[11px] leading-tight text-muted-foreground">
+            <span className="font-display text-foreground">CQ Signal</span>
+            <span className="mx-1.5">·</span>
+            <span>Internal · v0.3</span>
+          </div>
+        ) : null}
       </SidebarFooter>
-    </Sidebar>
+    </>
   );
 }

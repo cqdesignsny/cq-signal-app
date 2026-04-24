@@ -84,18 +84,71 @@ async function fetchResponsesPage(
   return res.json();
 }
 
-function extractLead(r: TypeformRawResponse): TypeformLead {
+type TypeformFormField = {
+  id: string;
+  title: string;
+  ref?: string;
+  type: string;
+};
+
+type TypeformFormDefinition = {
+  id: string;
+  title: string;
+  fields: TypeformFormField[];
+};
+
+/**
+ * Pulls the form definition once and returns a key (id or ref) → title map.
+ * Title is the human-friendly label like "First name" or "Company". Without
+ * this the extractor can only match against ref/id, which fails on forms that
+ * use random IDs.
+ */
+async function fetchFieldTitleMap(
+  formId: string,
+): Promise<Map<string, string>> {
+  const pat = process.env.TYPEFORM_PAT;
+  if (!pat) return new Map();
+
+  try {
+    const res = await fetch(`https://api.typeform.com/forms/${formId}`, {
+      headers: { Authorization: `Bearer ${pat}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return new Map();
+    const def = (await res.json()) as TypeformFormDefinition;
+    const map = new Map<string, string>();
+    for (const f of def.fields ?? []) {
+      if (f.id) map.set(f.id, f.title);
+      if (f.ref) map.set(f.ref, f.title);
+    }
+    return map;
+  } catch (err) {
+    console.error("[typeform] fetchFieldTitleMap failed", err);
+    return new Map();
+  }
+}
+
+function extractLead(
+  r: TypeformRawResponse,
+  titleMap: Map<string, string>,
+): TypeformLead {
   const fields: Record<string, string> = {};
-  // Track ordered narrative answers so we can pick "what they're looking for"
-  // as the first long text field that isn't name / email / phone / company.
-  const narrativeKeys = new Set<string>();
-  let name: string | undefined;
+  // Track narrative answers in submission order so we can pick "what they're
+  // looking for" as the first long text field that isn't name / email / phone.
+  const narrativeAnswers: string[] = [];
+  let firstName: string | undefined;
+  let lastName: string | undefined;
+  let fullName: string | undefined;
   let email: string | undefined;
   let phone: string | undefined;
   let company: string | undefined;
 
   for (const answer of r.answers ?? []) {
-    const key = answer.field?.ref || answer.field?.id || "unknown";
+    const id = answer.field?.id ?? "";
+    const ref = answer.field?.ref ?? "";
+    const key = ref || id || "unknown";
+    const title = (titleMap.get(id) || titleMap.get(ref) || "").toLowerCase();
+
     let value: string | undefined;
 
     switch (answer.type) {
@@ -103,7 +156,7 @@ function extractLead(r: TypeformRawResponse): TypeformLead {
       case "short_text":
       case "long_text":
         value = answer.text;
-        if (answer.type === "long_text") narrativeKeys.add(key);
+        if (answer.type === "long_text" && value) narrativeAnswers.push(value);
         break;
       case "email":
         value = answer.email;
@@ -132,15 +185,44 @@ function extractLead(r: TypeformRawResponse): TypeformLead {
     }
 
     if (value != null && value !== "") {
-      fields[key] = value;
+      // Use the human title as the field key when available so callers get
+      // readable keys ("First name") rather than random IDs.
+      const friendlyKey = titleMap.get(id) ?? titleMap.get(ref) ?? key;
+      fields[friendlyKey] = value;
+
       const k = key.toLowerCase();
-      if (!name && /name|first|last/.test(k)) name = value;
-      if (!email && (answer.type === "email" || /email/.test(k))) email = value;
-      if (!phone && (answer.type === "phone_number" || /phone/.test(k))) phone = value;
-      if (!company && /company|business|organization|org|firm/.test(k))
+      const matchName = (s: string) => /name/.test(s);
+      const matchFirst = (s: string) => /first/.test(s);
+      const matchLast = (s: string) => /last/.test(s);
+
+      if (matchFirst(title) || matchFirst(k)) firstName = value;
+      else if (matchLast(title) || matchLast(k)) lastName = value;
+      else if (!fullName && (matchName(title) || matchName(k))) fullName = value;
+
+      if (!email && (answer.type === "email" || /email/.test(title) || /email/.test(k))) {
+        email = value;
+      }
+      if (
+        !phone &&
+        (answer.type === "phone_number" || /phone/.test(title) || /phone/.test(k))
+      ) {
+        phone = value;
+      }
+      if (
+        !company &&
+        (/company|business|organization|^org$|firm/.test(title) ||
+          /company|business|organization|^org$|firm/.test(k))
+      ) {
         company = value;
+      }
     }
   }
+
+  const name =
+    fullName ??
+    (firstName && lastName
+      ? `${firstName} ${lastName}`
+      : (firstName ?? lastName));
 
   // Last-resort fallback: any @-looking string is our email.
   if (!email) {
@@ -155,13 +237,7 @@ function extractLead(r: TypeformRawResponse): TypeformLead {
   // First narrative answer = "what they were looking for / asked for".
   // Prefer long_text fields. Fall back to any field that looks like a
   // message / question / details / project answer.
-  let message: string | undefined;
-  for (const k of narrativeKeys) {
-    if (fields[k]) {
-      message = fields[k];
-      break;
-    }
-  }
+  let message: string | undefined = narrativeAnswers[0];
   if (!message) {
     for (const [k, v] of Object.entries(fields)) {
       if (/message|question|details|project|need|inquiry|describe|how can/i.test(k) && v) {
@@ -170,11 +246,17 @@ function extractLead(r: TypeformRawResponse): TypeformLead {
       }
     }
   }
-  // Last fallback: longest free-text answer that isn't an identifier.
+  // Last fallback: longest free-text answer that isn't an identifier or a name.
   if (!message) {
+    const skipValues = new Set<string>(
+      [name, firstName, lastName, email, phone, company].filter(
+        (v): v is string => Boolean(v),
+      ),
+    );
     const candidates = Object.entries(fields).filter(
       ([, v]) =>
         v.length > 20 &&
+        !skipValues.has(v) &&
         !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) &&
         !/^\+?\d[\d\s().-]{6,}$/.test(v),
     );
@@ -222,15 +304,16 @@ export async function fetchTypeformSnapshot(
 ): Promise<TypeformSnapshot> {
   const prior = computePriorRange(startDate, endDate);
 
-  const [currentResult, priorResult] = await Promise.all([
+  const [currentResult, priorResult, titleMap] = await Promise.all([
     fetchResponsesPage(formId, startDate, endDate),
     fetchResponsesPage(formId, prior.startDate, prior.endDate),
+    fetchFieldTitleMap(formId),
   ]);
 
   const leads = currentResult.items
     .slice()
     .sort((a, b) => b.submitted_at.localeCompare(a.submitted_at))
-    .map(extractLead);
+    .map((r) => extractLead(r, titleMap));
 
   return {
     formId,

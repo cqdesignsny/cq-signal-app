@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.16.0 · 2026-04-24 · Card cleanup + Compare toggle + DB-backed manual data + Typeform name fix + sidebar collapse fix
+
+Fixes punch list from Cesar's review of v0.15.0.
+
+**Create Report no longer refreshes the dashboard.** Just opens the report in a new tab and stays put. Popup-blocked path now shows a friendly alert instead of redirecting in the same tab.
+
+**Card layout fix:**
+- `CardManageAction` is now **always visible** (not hover-only), and lives **inline next to the status pill** in the upper-right of every card. So if a card is "Not connected," the "Connect" button is always there inviting action.
+- Dropped the `ArrowUpRight` hover indicator that was overlapping the Manual / Live pill. The card-lift + ring-on-hover already signal interactivity.
+- The card content area gets `pr-32` padding so titles don't run into the new pill+button group.
+
+**Compare toggle returns.** `<ReportRangeTabs>` accepts a `showCompareToggle` prop and renders a "Compare vs prev." / "No comparison" pill next to the year tab. Toggle persists via `?compare=off` in the URL. The dashboard reads that param, omits the "vs prior period" line under the section title, and (next wave) will hide delta pills when off.
+
+**Date range now reads as Month Day, Year.** "April 25, 2026 to April 24, 2026" instead of ISO. New `formatLongDate` helper used on the dashboard "X days at a glance" subtitle.
+
+**Sidebar logo collapses with the sidebar.** `AppSidebar` now uses the shadcn `useSidebar()` hook to read state. When `state === "collapsed"`, the CQ Signal logo and the "CQ Signal · Internal · v0.3" footer text drop out so the icon-rail stays clean. Splits AppSidebar into outer (with `<Sidebar>`) and inner body (the part that needs the hook).
+
+**Typeform extraction overhaul:**
+- New `fetchFieldTitleMap(formId)` pulls the form definition once and builds a key → human-readable title map (e.g. "First name", "Last name", "Company", "Phone number"). Without this the extractor couldn't see field titles, only random IDs/refs.
+- Extractor now tracks `firstName` and `lastName` separately and combines into `name` ("Patricia Rothberg"). Falls back to a `name` / "full name" field if the form uses a single field instead.
+- Company extraction matches title or key against `company`, `business`, `organization`, `org`, `firm`.
+- Message extraction simplified — uses the first long-text answer in submission order, then falls back to the longest free-text answer that isn't a name/email/phone/company.
+- Fields object now uses friendly titles ("First name") as keys when available, instead of random IDs, so manual debugging and downstream reads are readable.
+
+**DB-backed manual data form** at `/app/businesses/[slug]/connect/[integration]`:
+
+- New `manual_channel_data` table (migration `0001_fresh_hellion.sql` applied to Neon) — one row per (business, integration) with a JSONB `data` payload matching the `ManualCardData` shape.
+- New Server Actions `saveManualChannelData(prevState, formData)` and `clearManualChannelData(prevState, formData)` write/delete entries; revalidate the dashboard, channel page, and connect page on save.
+- `getManualCard(slug, integration)` and `getManualOverlay(slug)` are now `async` and check the DB first, then fall back to the seed map in `src/lib/manual-data.ts`. All callers updated.
+- New `<ManualChannelForm>` client component renders a real editor: headline metric (label / value / footnote), up to four secondary metrics, and freeform notes that show on the report. Plus a Clear button when manual data exists. Includes an honest "Drop a screenshot (coming next)" stub above the form for the future vision-extraction flow.
+- Connect page rewritten to two stacked sections (Live API / Manual data) instead of side-by-side, so the manual editor has the full width it needs.
+
 ## v0.15.0 · 2026-04-23 · Dashboard polish + functional Share menu + connect flow + Profile persistence + theme toggle on report
 
 **Brand-agnostic copy** — every user-facing mention of "Claude" stripped from marketing page, settings/agents page, markdown export prompts, and dashboard subhead. Internal model strings stay (`anthropic/claude-sonnet-4.6` in route handlers). The product now reads as model-agnostic so swapping the underlying brain is a private detail.

@@ -126,11 +126,11 @@ function liveValuesFor(
   return null;
 }
 
-function manualValuesFor(
+async function manualValuesFor(
   slug: string,
   key: Integration,
-): LiveCardValues | null {
-  const m = getManualCard(slug, key);
+): Promise<LiveCardValues | null> {
+  const m = await getManualCard(slug, key);
   if (!m) return null;
   return {
     primary: { label: m.primary.label, value: m.primary.value },
@@ -139,6 +139,16 @@ function manualValuesFor(
       .map((s) => ({ label: s.label, value: s.value })),
     note: m.primary.note,
   };
+}
+
+function formatLongDate(iso: string): string {
+  const d = new Date(iso + "T00:00:00Z");
+  return d.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 function resolveRangeKey(value: unknown): RangeKey {
@@ -155,10 +165,23 @@ export default async function BusinessPage({ params, searchParams }: Props) {
   if (!business) notFound();
 
   const activeRange = resolveRangeKey(sp.range);
+  const compare = sp.compare !== "off";
   const rangeCfg = RANGES.find((r) => r.key === activeRange)!;
   const rangeData = await fetchRangeData(slug, activeRange);
 
   const otherIntegrations = business.integrations.filter((i) => i !== "ga4");
+
+  // Pre-resolve manual overlays for every non-live card so the JSX stays
+  // synchronous below.
+  const manualOverlays = await Promise.all(
+    otherIntegrations.map(async (key) => {
+      const live = liveValuesFor(key, rangeData);
+      if (live) return { key, manual: null as LiveCardValues | null };
+      const manual = await manualValuesFor(slug, key);
+      return { key, manual };
+    }),
+  );
+  const manualByKey = new Map(manualOverlays.map((o) => [o.key, o.manual]));
 
   return (
     <div className="mx-auto grid max-w-[1600px] gap-10 xl:grid-cols-[1fr_400px]">
@@ -218,15 +241,22 @@ export default async function BusinessPage({ params, searchParams }: Props) {
                 {rangeCfg.label} at a glance
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {rangeData.range.startDate} to {rangeData.range.endDate}
-                <span className="mx-2 opacity-40">·</span>
-                vs {rangeData.priorRange.startDate} to{" "}
-                {rangeData.priorRange.endDate}
+                {formatLongDate(rangeData.range.startDate)} to{" "}
+                {formatLongDate(rangeData.range.endDate)}
+                {compare ? (
+                  <>
+                    <span className="mx-2 opacity-40">·</span>
+                    vs {formatLongDate(rangeData.priorRange.startDate)} to{" "}
+                    {formatLongDate(rangeData.priorRange.endDate)}
+                  </>
+                ) : null}
               </p>
             </div>
             <ReportRangeTabs
               activeRange={activeRange}
               defaultRange={DEFAULT_RANGE}
+              showCompareToggle
+              compare={compare}
             />
           </div>
 
@@ -243,7 +273,7 @@ export default async function BusinessPage({ params, searchParams }: Props) {
               const config = channelCards[key];
               if (!config) return null;
               const live = liveValuesFor(key, rangeData);
-              const manual = !live ? manualValuesFor(business.slug, key) : null;
+              const manual = live ? null : manualByKey.get(key) ?? null;
               const overlay = live ?? manual;
               const primary = overlay?.primary ?? config.primary;
               const secondary = overlay?.secondary ?? config.secondary;
@@ -256,39 +286,48 @@ export default async function BusinessPage({ params, searchParams }: Props) {
                   : "empty";
               return (
                 <div key={key} className="group relative">
+                  {/* Full-card click overlay. Sits behind the Connect badge so
+                      clicking the badge doesn't fire the card link. */}
                   <Link
                     href={`/app/businesses/${business.slug}/${key}`}
                     aria-label={`Open ${config.source}`}
                     className="absolute inset-0 z-10 rounded-xl"
                   />
                   <Card className="card-lift relative h-full pointer-events-none group-hover:ring-2 group-hover:ring-brand/45">
-                    {isLive ? (
-                      <span className="pointer-events-none absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-brand ring-1 ring-inset ring-brand/30">
-                        <span className="size-1.5 rounded-full bg-brand" />
-                        Live
-                      </span>
-                    ) : isManual ? (
-                      <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground ring-1 ring-inset ring-border">
-                        Manual
-                      </span>
-                    ) : (
-                      <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-muted/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground/70 ring-1 ring-inset ring-border/60">
-                        Not connected
-                      </span>
-                    )}
-                    <CardHeader className="gap-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 space-y-0.5">
-                          <CardDescription className="font-mono text-[11px] uppercase tracking-widest transition-colors group-hover:text-brand">
-                            {config.source}
-                          </CardDescription>
-                          {config.sourceDescription ? (
-                            <p className="text-[11px] leading-tight text-muted-foreground/75">
-                              {config.sourceDescription}
-                            </p>
-                          ) : null}
-                        </div>
-                        <ArrowUpRight className="size-4 shrink-0 text-muted-foreground opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand group-hover:opacity-100" />
+                    {/* Status pill + persistent Connect badge live together
+                        in the upper-right so they don't collide with the
+                        title or arrow indicators. */}
+                    <div className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-1.5">
+                      {isLive ? (
+                        <span className="flex items-center gap-1.5 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-brand ring-1 ring-inset ring-brand/30">
+                          <span className="size-1.5 rounded-full bg-brand" />
+                          Live
+                        </span>
+                      ) : isManual ? (
+                        <span className="rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground ring-1 ring-inset ring-border">
+                          Manual
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-muted/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground/70 ring-1 ring-inset ring-border/60">
+                          Not connected
+                        </span>
+                      )}
+                      <CardManageAction
+                        slug={business.slug}
+                        integration={key}
+                        state={cardState}
+                      />
+                    </div>
+                    <CardHeader className="gap-2 pr-32">
+                      <div className="min-w-0 space-y-0.5">
+                        <CardDescription className="font-mono text-[11px] uppercase tracking-widest transition-colors group-hover:text-brand">
+                          {config.source}
+                        </CardDescription>
+                        {config.sourceDescription ? (
+                          <p className="text-[11px] leading-tight text-muted-foreground/75">
+                            {config.sourceDescription}
+                          </p>
+                        ) : null}
                       </div>
                       <CardTitle className="font-sans text-base font-normal text-muted-foreground">
                         {primary.label}
@@ -315,11 +354,6 @@ export default async function BusinessPage({ params, searchParams }: Props) {
                       ) : null}
                     </CardContent>
                   </Card>
-                  <CardManageAction
-                    slug={business.slug}
-                    integration={key}
-                    state={cardState}
-                  />
                 </div>
               );
             })}

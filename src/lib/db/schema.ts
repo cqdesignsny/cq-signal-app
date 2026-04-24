@@ -186,6 +186,29 @@ export const reports = pgTable(
   }),
 );
 
+// Manually-entered channel data, used to populate dashboard cards before the
+// corresponding API integration is wired. One row per (business, integration);
+// `data` holds the same shape as `ManualCardData` in src/lib/manual-data.ts.
+export const manualChannelData = pgTable(
+  "manual_channel_data",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    businessId: uuid("business_id")
+      .notNull()
+      .references(() => businesses.id, { onDelete: "cascade" }),
+    integration: varchar("integration", { length: 64 }).notNull(),
+    data: jsonb("data").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    businessIntegrationIdx: uniqueIndex(
+      "manual_channel_data_business_integration_idx",
+    ).on(table.businessId, table.integration),
+  }),
+);
+
 export type Workspace = typeof workspaces.$inferSelect;
 export type NewWorkspace = typeof workspaces.$inferInsert;
 export type User = typeof users.$inferSelect;

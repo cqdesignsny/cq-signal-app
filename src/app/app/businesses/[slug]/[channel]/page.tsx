@@ -420,7 +420,7 @@ function TypeformChannelView({
   );
 }
 
-function ManualChannelView({
+async function ManualChannelView({
   slug,
   integration,
   source,
@@ -435,7 +435,7 @@ function ManualChannelView({
   fallbackSecondary: { label: string; value: string }[];
   detailSections: { title: string; description: string }[];
 }) {
-  const m = getManualCard(slug, integration);
+  const m = await getManualCard(slug, integration);
   const primary = m?.primary ?? fallbackPrimary;
   const secondary = m?.secondary ?? fallbackSecondary;
   const note = m?.notes;

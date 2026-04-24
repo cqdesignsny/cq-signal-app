@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { Check, FileText, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { CreateReportResult } from "@/app/app/businesses/[slug]/actions";
 
@@ -13,7 +12,6 @@ type Props = {
 };
 
 export function CreateReportButton({ action, slug, className }: Props) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [opened, setOpened] = useState(false);
 
@@ -31,13 +29,15 @@ export function CreateReportButton({ action, slug, className }: Props) {
               "noopener,noreferrer",
             );
             if (!win) {
-              // Popup blocker. Fall back to same-tab navigation.
-              window.location.href = `/reports/${result.shareToken}`;
+              // Popup blocker. Don't navigate the dashboard. Tell the user.
+              alert(
+                "Looks like a popup blocker swallowed the new tab. Allow popups for this site, or open the report from Report history below.",
+              );
               return;
             }
             setOpened(true);
-            // Refresh the dashboard so report history picks up the new entry.
-            router.refresh();
+            // Stay on the dashboard. The new report will show up in Report
+            // history on the next natural reload.
             setTimeout(() => setOpened(false), 2400);
           } catch (err) {
             console.error("[create-report] failed", err);

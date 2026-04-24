@@ -2,9 +2,14 @@
 // the corresponding API integration is wired. Each entry overrides the generic
 // `channelCards[integration]` placeholder for that business.
 //
-// As real integrations come online, delete the matching entry here and let the
-// live snapshot helpers do the work.
+// Lookup order: DB (`manual_channel_data` table) → seed map below → undefined.
+//
+// As real integrations come online, delete the matching seed entry here and
+// rely on the live snapshot helpers.
 
+import { and, eq } from "drizzle-orm";
+import { db } from "@/lib/db/client";
+import { businesses, manualChannelData, workspaces } from "@/lib/db/schema";
 import type { Integration } from "@/lib/businesses";
 
 export type ManualCardData = {
@@ -81,19 +86,56 @@ const HVOF_MANUAL: Partial<Record<Integration, ManualCardData>> = {
   },
 };
 
-const REGISTRY: Record<string, Partial<Record<Integration, ManualCardData>>> = {
+const SEED_REGISTRY: Record<
+  string,
+  Partial<Record<Integration, ManualCardData>>
+> = {
   "hudson-valley-office-furniture": HVOF_MANUAL,
 };
 
-export function getManualCard(
+async function loadDbOverlay(
   businessSlug: string,
-  integration: Integration,
-): ManualCardData | undefined {
-  return REGISTRY[businessSlug]?.[integration];
+): Promise<Partial<Record<Integration, ManualCardData>>> {
+  const workspace = await db.query.workspaces.findFirst({
+    where: eq(workspaces.slug, "cq"),
+  });
+  if (!workspace) return {};
+  const business = await db.query.businesses.findFirst({
+    where: and(
+      eq(businesses.workspaceId, workspace.id),
+      eq(businesses.slug, businessSlug),
+    ),
+  });
+  if (!business) return {};
+
+  const rows = await db
+    .select({
+      integration: manualChannelData.integration,
+      data: manualChannelData.data,
+    })
+    .from(manualChannelData)
+    .where(eq(manualChannelData.businessId, business.id));
+
+  const out: Partial<Record<Integration, ManualCardData>> = {};
+  for (const row of rows) {
+    out[row.integration as Integration] = row.data as ManualCardData;
+  }
+  return out;
 }
 
-export function getManualOverlay(
+export async function getManualCard(
   businessSlug: string,
-): Partial<Record<Integration, ManualCardData>> {
-  return REGISTRY[businessSlug] ?? {};
+  integration: Integration,
+): Promise<ManualCardData | undefined> {
+  const dbOverlay = await loadDbOverlay(businessSlug);
+  if (dbOverlay[integration]) return dbOverlay[integration];
+  return SEED_REGISTRY[businessSlug]?.[integration];
+}
+
+export async function getManualOverlay(
+  businessSlug: string,
+): Promise<Partial<Record<Integration, ManualCardData>>> {
+  const seed = SEED_REGISTRY[businessSlug] ?? {};
+  const dbOverlay = await loadDbOverlay(businessSlug);
+  return { ...seed, ...dbOverlay };
 }

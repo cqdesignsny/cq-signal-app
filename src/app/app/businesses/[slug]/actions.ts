@@ -9,8 +9,8 @@ import type { ManualChannelData } from "@/lib/reports/generate";
 const NARRATIVE_FALLBACK =
   "Live data captured at the moment this report was generated. The numbers below reflect what was happening that day. Range toggle on the report page lets the recipient see the same business across 7-day, 30-day, 90-day, and 1-year windows.";
 
-function manualChannelsFor(slug: string): ManualChannelData[] {
-  const overlay = getManualOverlay(slug);
+async function manualChannelsFor(slug: string): Promise<ManualChannelData[]> {
+  const overlay = await getManualOverlay(slug);
   const out: ManualChannelData[] = [];
 
   type Allowed = ManualChannelData["channel"];
@@ -66,7 +66,7 @@ export async function createReportForBusiness(
     businessSlug: slug,
     primaryRange: "30d",
     narrative: NARRATIVE_FALLBACK,
-    manualChannels: manualChannelsFor(slug),
+    manualChannels: await manualChannelsFor(slug),
     businessProfile:
       slug === "hudson-valley-office-furniture"
         ? { logoUrl: "/HVOF-2025-logo.svg", brandColor: "#F4B400" }

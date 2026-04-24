@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, ImagePlus, Plug, Sparkles } from "lucide-react";
+import { ArrowLeft, Plug } from "lucide-react";
 import {
   channelCards,
   channelDetails,
@@ -11,6 +11,9 @@ import {
 } from "@/lib/businesses";
 import { getManualCard } from "@/lib/manual-data";
 import { Button } from "@/components/ui/button";
+import { ManualChannelForm } from "@/components/manual-channel-form";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ slug: string; integration: string }>;
@@ -59,7 +62,7 @@ export default async function ConnectIntegrationPage({ params }: Props) {
   const card = channelCards[ch];
   const detail = channelDetails[ch];
   const liveReady = LIVE_READY.includes(ch);
-  const manual = getManualCard(slug, ch);
+  const manual = await getManualCard(slug, ch);
 
   return (
     <div className="mx-auto max-w-3xl space-y-10">
@@ -91,91 +94,51 @@ export default async function ConnectIntegrationPage({ params }: Props) {
         ) : null}
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-border/60 bg-card/70 p-6 shadow-sm backdrop-blur">
-          <div className="flex items-center gap-2">
-            <Plug className="size-4 text-brand" />
-            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              Live API feed
-            </p>
-          </div>
-          <h2 className="mt-2 font-display text-xl tracking-tight">
-            {liveReady ? "Authorize the live feed" : "Live API coming soon"}
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            {liveReady
-              ? "OAuth flow lands in the next wave. Until then, this card auto-pulls live from the existing service-level credentials."
-              : "OAuth + API credentials for this channel haven't shipped yet. Pick the manual option for now and Signal will treat the data the same way in reports."}
+      <section className="rounded-2xl border border-border/60 bg-card/70 p-6 shadow-sm backdrop-blur md:p-8">
+        <div className="flex items-center gap-2">
+          <Plug className="size-4 text-brand" />
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            Live API feed
           </p>
-          <Button size="sm" disabled className="mt-5 gap-1.5">
-            <Plug className="size-3.5" />
-            {liveReady ? "Re-authorize (coming)" : "Connect (coming)"}
-          </Button>
         </div>
+        <h2 className="mt-2 font-display text-xl tracking-tight">
+          {liveReady
+            ? "Already pulling live"
+            : "Live API for this channel is on the way"}
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {liveReady
+            ? "This integration uses the workspace-level credentials. OAuth-per-business lands in the next wave; until then no action is needed here."
+            : "OAuth credentials for this channel haven't shipped yet. Use the manual form below to keep this card up to date in the meantime — reports treat manual values exactly like live ones."}
+        </p>
+        <Button size="sm" disabled className="mt-5 gap-1.5">
+          <Plug className="size-3.5" />
+          {liveReady ? "Re-authorize (coming)" : "Connect API (coming)"}
+        </Button>
+      </section>
 
-        <div className="rounded-2xl border border-border/60 bg-card/70 p-6 shadow-sm backdrop-blur">
-          <div className="flex items-center gap-2">
-            <Sparkles className="size-4 text-brand" />
-            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              Manual data
-            </p>
-          </div>
-          <h2 className="mt-2 font-display text-xl tracking-tight">
-            {manual ? "Manual data is wired up" : "Add manual data"}
-          </h2>
-          {manual ? (
-            <>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {manual.notes ??
-                  "This channel is currently displaying manually-entered values. Edit them by updating `src/lib/manual-data.ts` for now; a UI editor lands in the next wave."}
-              </p>
-              <div className="mt-4 rounded-md border border-border/60 bg-muted/20 p-3 text-xs">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                  Currently showing
-                </p>
-                <p className="mt-1 text-foreground">
-                  <strong>{manual.primary.label}:</strong> {manual.primary.value}
-                </p>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Don't have credentials handy? Drop in numbers manually and they
-                show up on the dashboard with a "Manual" badge. Reports treat
-                manual values exactly like live ones.
-              </p>
-              <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-                <p className="flex items-center gap-2">
-                  <ImagePlus className="size-3.5 text-brand" />
-                  Coming next: paste a screenshot from any reporting dashboard
-                  and Signal extracts the values into this card automatically.
-                </p>
-              </div>
-              <Button size="sm" disabled className="mt-5 gap-1.5">
-                <Sparkles className="size-3.5" />
-                Enter values (coming)
-              </Button>
-            </>
-          )}
+      <section className="rounded-2xl border border-border/60 bg-card/70 p-6 shadow-sm backdrop-blur md:p-8">
+        <div className="flex items-center gap-2">
+          <span className="size-1.5 rounded-full bg-brand" />
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            Manual data
+          </p>
         </div>
-      </div>
-
-      <div className="rounded-xl border border-dashed border-border/60 bg-muted/20 p-5 text-sm text-muted-foreground">
-        Want to wire this up tonight? Edit{" "}
-        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-          src/lib/manual-data.ts
-        </code>{" "}
-        and add an entry under{" "}
-        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-          {business.slug}
-        </code>{" "}
-        for{" "}
-        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-          {ch}
-        </code>
-        . Card and report will pick it up on the next render.
-      </div>
+        <h2 className="mt-2 font-display text-xl tracking-tight">
+          {manual ? "Edit manual data" : "Add manual data"}
+        </h2>
+        <p className="mt-2 mb-6 text-sm leading-relaxed text-muted-foreground">
+          Type in the headline number, a few secondary stats, and a short note.
+          The card on the dashboard and the matching section on every generated
+          report pick up these values immediately.
+        </p>
+        <ManualChannelForm
+          slug={business.slug}
+          integration={ch}
+          source={card.source}
+          initial={manual}
+        />
+      </section>
     </div>
   );
 }
