@@ -20,6 +20,17 @@ Internal tool for [Creative Quality Marketing](https://creativequalitymarketing.
 **Live:** [cq-signal-app.vercel.app](https://cq-signal-app.vercel.app)
 **Repo:** [github.com/cqdesignsny/cq-signal-app](https://github.com/cqdesignsny/cq-signal-app)
 
+What works today (v0.11.0):
+
+- Auth (Clerk) with `/sign-in` and `/sign-up` gated app at `/app/*`
+- Neon Postgres with full schema, AES-256-GCM credential encryption
+- **Live GA4** (OAuth refresh token) and **Typeform** (Personal Access Token) integrations
+- **Report generator** that pulls all four ranges (7d / 30d / 90d / 1y), stores a versioned snapshot, and returns a public share URL
+- **Range toggle on public reports** at `/reports/[token]?range=7d|30d|90d|1y`
+- SVG / PNG / JPEG logo support
+- Signal chat (streaming Claude Sonnet 4.6) with analyst voice on every business page
+- Markdown export on every business
+
 ## Stack
 
 - Next.js 16 App Router, React 19, TypeScript strict
@@ -27,7 +38,10 @@ Internal tool for [Creative Quality Marketing](https://creativequalitymarketing.
 - shadcn/ui on Radix primitives
 - Vercel Fluid Compute, AI Gateway routing
 - Claude Sonnet 4.6 via the `anthropic/claude-sonnet-4.6` model string
-- Planned: Neon Postgres, Vercel Blob, Clerk auth, Upstash Redis
+- Neon Postgres (Vercel Marketplace) + Drizzle ORM + drizzle-kit migrations
+- Clerk v7 for authentication
+- Vercel AI SDK v6 for streaming chat
+- Planned: Vercel Blob (logo uploads), Upstash Redis (caching), Resend (email delivery)
 
 ## Running locally
 

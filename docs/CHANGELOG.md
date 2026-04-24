@@ -1,5 +1,43 @@
 # Changelog
 
+## v0.11.0 · 2026-04-23 · Range toggle on reports + SVG logo support
+
+- Report snapshot upgraded to v2 schema. `generateReport()` now fetches all four ranges (7d, 30d, 90d, 1y) in parallel and stores them under `snapshot.ranges[key]` with pre-computed `range` and `priorRange` date windows. `snapshot.primaryRange` picks the default tab.
+- New `<ReportRangeTabs>` client component lives in the public report header and mirrors the dashboard's tab shape. Switches via `?range=` query param wrapped in `useTransition` + `router.push({ scroll: false })`. Omits the param when it equals the default range.
+- Public `/reports/[token]` page accepts `searchParams` (async), resolves the active range, and renders `ranges[activeRange].ga4` and `ranges[activeRange].typeform`. Manual channels render regardless of range. `export const dynamic = "force-dynamic"` so the toggle re-renders server-side on each switch.
+- SVG logo support. `next.config.ts` enables `dangerouslyAllowSVG` with a CSP sandbox `default-src 'self'; script-src 'none'; sandbox;` on image-optimized responses. Business logos render as plain `<img>` on the report to sidestep the optimizer entirely for SVGs. HVOF now uses its 2025 SVG logo.
+- `GenerateReportInput.businessProfile` persists `logoUrl`, `brandColor`, `tagline`, and `vertical` onto the `businesses` row so the snapshot inherits the latest brand values at generation time.
+- `server-only` removed from `src/lib/reports/generate.ts`, `src/lib/db/client.ts`, `src/lib/integrations/ga4.ts`, and `src/lib/integrations/typeform.ts` so `pnpm generate:hvof` can run them from tsx. Crypto module stays `server-only`.
+
+## v0.10.0 · 2026-04-23 · Report system + HVOF's first generated report
+
+- Report pipeline lives at `src/lib/reports/generate.ts`. `generateReport({ businessSlug, primaryRange, narrative, manualChannels, businessProfile })` ensures the workspace + business rows exist, fetches live GA4 + Typeform data, merges in manual channels, generates a 32-char hex share token, inserts into `reports`, and returns `{ reportId, shareToken, shareUrl, snapshot }`.
+- Public `/reports/[token]` page reads the snapshot from DB and renders the full report: business header with logo, primary narrative, GA4 block (sessions vs prior, top landing pages, top traffic sources), Typeform block (lead list with names and emails extracted from flexible answer structures), manual channel cards (Meta Ads, FB, IG, LinkedIn, Omnisend) with notes explaining what's manual vs live.
+- `scripts/generate-hvof-report.ts` bundles all HVOF manual data (April 2026 MTD), a narrative written in Signal's voice, and the business profile (logo, brand color). `pnpm generate:hvof` runs it via `dotenv -e .env.local -- tsx` so the DB and integrations tick without needing the API routes' Clerk auth wall.
+- `/api/reports/generate` route handler wraps the same pipeline for when we want to trigger from the UI.
+
+## v0.9.1 · 2026-04-23 · Typeform integration live
+
+- `src/lib/integrations/typeform.ts` hits the Typeform Responses API using a Personal Access Token. Exports `fetchTypeformSnapshot(formId, startDate, endDate)` that returns total leads with period-over-period delta, a list of recent leads with name/email/phone extracted from flexible `answers[]` structures (matches on type, then `field.ref`, then falls back to regex on free text), and last-submitted timestamp.
+- Period comparison computed from the same range length shifted back one period.
+- HVOF's live leads pulling through cleanly with names and emails attached.
+
+## v0.9.0 · 2026-04-23 · Real GA4 integration with OAuth refresh token
+
+- `src/lib/integrations/ga4.ts` is a zero-dependency OAuth2 refresh-token flow. Exchanges `GOOGLE_GA4_REFRESH_TOKEN` for a short-lived access token at `oauth2.googleapis.com/token`, then hits `analyticsdata.googleapis.com/v1beta/properties/{id}:runReport` with `fetch`. No `googleapis` package, no service account key.
+- Exports `fetchGA4Snapshot(propertyId, startDate, endDate)` returning sessions + users + pageviews with period-over-period delta, top landing pages by entries, top traffic sources by sessions.
+- Pivoted from service account after `iam.disableServiceAccountKeyCreation` org policy blocked key generation. OAuth Playground flow produced a long-lived refresh token against the existing n8n Google OAuth client.
+- HVOF's live sessions, top landing pages, traffic sources all reading cleanly.
+
+## v0.8.2 · 2026-04-23 · LinkedIn + friendly source labels
+
+- LinkedIn added to the integration catalog and wired for HVOF + TZ Electric.
+- Each channel card gets an optional `sourceDescription` (e.g., "Website analytics (GA4)", "Facebook + Instagram paid ads") rendered under the source label so non-technical readers understand what each tile represents.
+
+## v0.8.1 · 2026-04-23 · Light/dark toggle on marketing nav
+
+- Theme toggle moved into the marketing-page sticky nav so visitors can preview the app in light or dark before signing in.
+
 ## v0.8.0 · 2026-04-23 · Marketing landing + app moved to /app/*
 
 - New marketing landing page at `/` (public). Sticky glass nav with logo and Sign in / Get started CTAs; hero with editorial headline and brand-tagged chip; problem section; how-it-works four-card grid; seven differentiator cards; mission section with warm brand gradient overlay and Cesar's story in first person linking to [Creative Quality Marketing](https://creativequalitymarketing.com); final CTA; footer with nav anchors and sign-in link.

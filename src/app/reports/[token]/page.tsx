@@ -8,15 +8,24 @@ import {
   Printer,
   Sparkles,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { getReportByShareToken, type ReportSnapshot } from "@/lib/reports/generate";
+import {
+  getReportByShareToken,
+  REPORT_RANGES,
+  type ReportRangeData,
+  type ReportRangeKey,
+  type ReportSnapshot,
+} from "@/lib/reports/generate";
 import type { GA4Snapshot } from "@/lib/integrations/ga4";
 import type { TypeformSnapshot } from "@/lib/integrations/typeform";
+import { ReportRangeTabs } from "@/components/report-range-tabs";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ token: string }> };
+type Props = {
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ range?: string }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token } = await params;
@@ -24,16 +33,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!snapshot) return { title: "Report not found" };
   return {
     title: `${snapshot.business.name} · Marketing Report`,
-    description: `Marketing performance report for ${snapshot.business.name}. ${snapshot.dateRange.label}.`,
+    description: `Marketing performance report for ${snapshot.business.name}.`,
   };
 }
 
-export default async function ReportPage({ params }: Props) {
+function isValidRange(value: string | undefined): value is ReportRangeKey {
+  return REPORT_RANGES.some((r) => r.key === value);
+}
+
+export default async function ReportPage({ params, searchParams }: Props) {
   const { token } = await params;
+  const sp = await searchParams;
   const snapshot = await getReportByShareToken(token);
   if (!snapshot) notFound();
 
-  return <ReportView snapshot={snapshot} />;
+  const activeRange: ReportRangeKey = isValidRange(sp.range)
+    ? sp.range
+    : snapshot.primaryRange;
+
+  return <ReportView snapshot={snapshot} activeRange={activeRange} />;
 }
 
 function formatNumber(n: number): string {
@@ -57,7 +75,9 @@ function formatDateRange(start: string, end: string): string {
   const s = new Date(start + "T00:00:00Z");
   const e = new Date(end + "T00:00:00Z");
   const sameMonth =
-    s.getUTCMonth() === e.getUTCMonth() && s.getUTCFullYear() === e.getUTCFullYear();
+    s.getUTCMonth() === e.getUTCMonth() &&
+    s.getUTCFullYear() === e.getUTCFullYear();
+  const sameYear = s.getUTCFullYear() === e.getUTCFullYear();
   const monthLong = (d: Date) =>
     d.toLocaleDateString("en-US", { month: "long", timeZone: "UTC" });
   const monthShort = (d: Date) =>
@@ -65,10 +85,19 @@ function formatDateRange(start: string, end: string): string {
   if (sameMonth) {
     return `${monthLong(s)} ${s.getUTCDate()} to ${e.getUTCDate()}, ${e.getUTCFullYear()}`;
   }
-  return `${monthShort(s)} ${s.getUTCDate()} to ${monthShort(e)} ${e.getUTCDate()}, ${e.getUTCFullYear()}`;
+  if (sameYear) {
+    return `${monthShort(s)} ${s.getUTCDate()} to ${monthShort(e)} ${e.getUTCDate()}, ${e.getUTCFullYear()}`;
+  }
+  return `${monthShort(s)} ${s.getUTCDate()}, ${s.getUTCFullYear()} to ${monthShort(e)} ${e.getUTCDate()}, ${e.getUTCFullYear()}`;
 }
 
-function Delta({ deltaPct, positiveIsGood = true }: { deltaPct: number | null; positiveIsGood?: boolean }) {
+function Delta({
+  deltaPct,
+  positiveIsGood = true,
+}: {
+  deltaPct: number | null | undefined;
+  positiveIsGood?: boolean;
+}) {
   if (deltaPct === null || deltaPct === undefined || Number.isNaN(deltaPct)) {
     return null;
   }
@@ -87,15 +116,29 @@ function Delta({ deltaPct, positiveIsGood = true }: { deltaPct: number | null; p
         : "text-muted-foreground";
   const Icon = isUp ? ArrowUpRight : isDown ? ArrowDownRight : Minus;
   return (
-    <span className={cn("inline-flex items-center gap-0.5 font-mono text-xs font-medium", tone)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-0.5 font-mono text-xs font-medium",
+        tone,
+      )}
+    >
       <Icon className="size-3" />
       {Math.abs(deltaPct).toFixed(1)}%
     </span>
   );
 }
 
-function ReportView({ snapshot }: { snapshot: ReportSnapshot }) {
-  const { business, dateRange, priorRange, ga4, typeform, manualChannels } = snapshot;
+function ReportView({
+  snapshot,
+  activeRange,
+}: {
+  snapshot: ReportSnapshot;
+  activeRange: ReportRangeKey;
+}) {
+  const { business, manualChannels, narrative } = snapshot;
+  const rangeData = snapshot.ranges[activeRange];
+  const rangeLabel =
+    REPORT_RANGES.find((r) => r.key === activeRange)?.label ?? "";
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12 md:py-16 print:py-6">
@@ -114,21 +157,26 @@ function ReportView({ snapshot }: { snapshot: ReportSnapshot }) {
           height={40}
           className="hidden h-7 w-auto dark:block"
         />
-        <PrintButton />
+        <a
+          href="javascript:window.print()"
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted"
+        >
+          <Printer className="size-3.5" />
+          Print or save as PDF
+        </a>
       </nav>
 
       <header className="border-b pb-10 md:pb-14">
         {business.logoUrl ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={business.logoUrl}
             alt={business.name}
-            width={280}
-            height={80}
-            className="mb-8 h-16 w-auto max-w-[280px] object-contain object-left"
+            className="mb-8 h-20 w-auto max-w-[320px] object-contain object-left"
           />
         ) : null}
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-          Marketing report · {dateRange.label}
+          Marketing report · Last {rangeLabel}
         </p>
         <h1 className="mt-3 font-display text-5xl tracking-tight md:text-7xl">
           {business.name}
@@ -144,7 +192,7 @@ function ReportView({ snapshot }: { snapshot: ReportSnapshot }) {
               Period
             </p>
             <p className="mt-1 font-display text-base text-foreground">
-              {formatDateRange(dateRange.startDate, dateRange.endDate)}
+              {formatDateRange(rangeData.range.startDate, rangeData.range.endDate)}
             </p>
           </div>
           <div>
@@ -152,7 +200,10 @@ function ReportView({ snapshot }: { snapshot: ReportSnapshot }) {
               Compared to
             </p>
             <p className="mt-1 font-display text-base text-foreground">
-              {formatDateRange(priorRange.startDate, priorRange.endDate)}
+              {formatDateRange(
+                rangeData.priorRange.startDate,
+                rangeData.priorRange.endDate,
+              )}
             </p>
           </div>
           <div>
@@ -168,9 +219,19 @@ function ReportView({ snapshot }: { snapshot: ReportSnapshot }) {
             </p>
           </div>
         </div>
+
+        <div className="mt-10 flex flex-wrap items-center gap-3 print:hidden">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+            View range
+          </p>
+          <ReportRangeTabs
+            activeRange={activeRange}
+            defaultRange={snapshot.primaryRange}
+          />
+        </div>
       </header>
 
-      {snapshot.narrative ? (
+      {narrative ? (
         <section className="relative mt-12 overflow-hidden rounded-2xl border border-border/60 p-8 md:p-10 print:break-inside-avoid">
           <div className="absolute inset-0 bg-mesh-brand" aria-hidden />
           <div className="relative">
@@ -181,15 +242,17 @@ function ReportView({ snapshot }: { snapshot: ReportSnapshot }) {
               </p>
             </div>
             <p className="mt-4 font-display text-2xl leading-snug md:text-3xl">
-              {snapshot.narrative}
+              {narrative}
             </p>
           </div>
         </section>
       ) : null}
 
-      {ga4 ? <GA4Section snapshot={ga4} /> : null}
+      {rangeData.ga4 ? <GA4Section snapshot={rangeData.ga4} /> : null}
 
-      {typeform ? <TypeformSection snapshot={typeform} /> : null}
+      {rangeData.typeform ? (
+        <TypeformSection snapshot={rangeData.typeform} />
+      ) : null}
 
       {manualChannels.map((channel) => (
         <ManualSection key={channel.channel} data={channel} />
@@ -299,7 +362,6 @@ function MetricRow({
 function GA4Section({ snapshot }: { snapshot: GA4Snapshot }) {
   const bouncePct = snapshot.bounceRate.current * 100;
   const priorBouncePct = snapshot.bounceRate.prior * 100;
-  const bounceDeltaPts = bouncePct - priorBouncePct;
 
   return (
     <section className="mt-16 print:break-inside-avoid md:mt-20">
@@ -338,7 +400,11 @@ function GA4Section({ snapshot }: { snapshot: GA4Snapshot }) {
           label="Bounce rate"
           value={formatPercent(bouncePct)}
           prior={formatPercent(priorBouncePct)}
-          deltaPct={priorBouncePct ? (bounceDeltaPts / priorBouncePct) * 100 : null}
+          deltaPct={
+            priorBouncePct
+              ? ((bouncePct - priorBouncePct) / priorBouncePct) * 100
+              : null
+          }
           positiveIsGood={false}
         />
       </div>
@@ -382,7 +448,9 @@ function GA4Section({ snapshot }: { snapshot: GA4Snapshot }) {
                     <span className="mr-2 font-mono text-xs text-muted-foreground">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span className="truncate text-foreground">{src.source || "(direct)"}</span>
+                    <span className="truncate text-foreground">
+                      {src.source || "(direct)"}
+                    </span>
                   </div>
                   <span className="mono-nums shrink-0 text-muted-foreground">
                     {formatNumber(src.sessions)}{" "}
@@ -425,8 +493,8 @@ function TypeformSection({ snapshot }: { snapshot: TypeformSnapshot }) {
                 : "Same lead volume as last period."}
           </p>
           <p className="mt-1">
-            Form submissions captured via Typeform, pulled directly from the form's live
-            response feed.
+            Form submissions captured via Typeform, pulled directly from the
+            form's live response feed.
           </p>
         </div>
       </div>
@@ -435,7 +503,10 @@ function TypeformSection({ snapshot }: { snapshot: TypeformSnapshot }) {
           <h3 className="font-display text-lg">Recent submissions</h3>
           <ul className="mt-4 divide-y rounded-xl border bg-card">
             {recent.map((lead) => (
-              <li key={lead.id} className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
+              <li
+                key={lead.id}
+                className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm"
+              >
                 <span className="mono-nums w-24 shrink-0 text-xs text-muted-foreground">
                   {new Date(lead.submittedAt).toLocaleDateString("en-US", {
                     month: "short",
@@ -497,25 +568,5 @@ function ManualSection({
         </p>
       ) : null}
     </section>
-  );
-}
-
-function PrintButton() {
-  // Client-side print trigger. Kept small to avoid a separate file for v1.
-  return (
-    <form
-      action={async () => {
-        "use server";
-        // noop server action; real print happens client-side below
-      }}
-    >
-      <a
-        href="javascript:window.print()"
-        className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted"
-      >
-        <Printer className="size-3.5" />
-        Print or save as PDF
-      </a>
-    </form>
   );
 }

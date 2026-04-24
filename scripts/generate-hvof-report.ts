@@ -15,7 +15,7 @@ const manualChannels: ManualChannelData[] = [
       { label: "Cost per lead", value: "—" },
     ],
     notes:
-      "HVOF paused paid ads during this period. All leads this week came from organic channels (website form, plus direct and organic search traffic).",
+      "HVOF paused paid ads throughout April. All leads this month came from organic channels (website form plus direct and organic search traffic).",
   },
   {
     channel: "facebook",
@@ -48,57 +48,51 @@ const manualChannels: ManualChannelData[] = [
     sourceDescription: "Organic company page",
     primary: { label: "Page followers", value: "51" },
     secondary: [
-      { label: "Post impressions", value: "6", delta: "-40" },
-      { label: "Page visitors", value: "4", delta: "300" },
-      { label: "Search appearances", value: "12", delta: "200" },
-      { label: "New followers", value: "0" },
+      { label: "Post impressions (last 7d)", value: "6", delta: "-40" },
+      { label: "Page visitors (last 7d)", value: "4", delta: "300" },
+      { label: "Search appearances (last 7d)", value: "12", delta: "200" },
+      { label: "New followers (last 7d)", value: "0" },
     ],
     notes:
-      "No new posts this period. Most recent content is about two months old. The page is still accruing small amounts of organic visibility without active posting (+300% page visitors, +200% search appearances from a small base). Biggest single lever on LinkedIn right now: resume a posting cadence.",
+      "No new posts published during April. Most recent content is about two months old. The page is still accruing small amounts of organic visibility without active posting (+300% page visitors, +200% search appearances from a small base, rolling 7-day window). The single biggest lever on LinkedIn is resuming a posting cadence.",
   },
   {
     channel: "omnisend",
     source: "Omnisend",
     sourceDescription: "Email marketing",
     primary: {
-      label: "Campaigns sent this period",
-      value: "0",
-      note: "No sends during Apr 17 to 24",
+      label: "Avg open rate",
+      value: "12.3%",
+      note: "Weighted across 2 campaigns · 9,102 total sends",
     },
     secondary: [
-      {
-        label: "Last send open rate",
-        value: "4.8%",
-        note: "Booster · Apr 16 · 4,010 sent",
-      },
-      {
-        label: "Prior send open rate",
-        value: "18%",
-        note: "April Email 2 · Apr 14 · 5,092 sent · 5.1% CTR",
-      },
-      { label: "Total reach of last 2 sends", value: "9,102" },
+      { label: "Avg click-through", value: "3.0%" },
+      { label: "Emails sent", value: "9,102" },
+      { label: "Campaigns", value: "2" },
     ],
     notes:
-      "No campaigns sent during the report window. The two most recent sends (April 14 and April 16) show a big gap: April Email 2 hit 18% open and 5.1% CTR, but its booster one day later only hit 4.8% open and 0.14% CTR. Worth understanding what made April Email 2 work before the next send.",
+      "Two campaigns sent in April. April Email 2 (Apr 14, 5,092 sent) landed at 18% open and 5.1% CTR, a genuinely strong performance. The Booster resend one day later (Apr 16, 4,010 sent) collapsed to 4.8% open and 0.14% CTR. Worth understanding what made the first send work so the pattern is repeatable, and probably worth rethinking how and when boosters are sent.",
   },
 ];
 
 const narrative =
-  "HVOF's week tells a story of deeper engagement on less traffic. Website sessions dipped 12% from the prior week, but visitors who came stayed 26% longer and bounced less. Typeform leads doubled from one to two. Paid ads, email, and LinkedIn posting all sat idle this week. The most interesting signal: a ChatGPT.com referral appeared in the traffic mix for the first time, an early sign the site is being surfaced by AI tools. Three moves worth making next week: resume LinkedIn posting (small but climbing page-visitor and search-appearance numbers suggest the audience is still there), study what made April Email 2 open at 18% so the next send matches or beats it, and double down on whatever content held those longer sessions and lower bounce.";
+  "April month-to-date for Hudson Valley Office Furniture. Traffic is flowing, leads are coming through the website, one email campaign delivered strongly and its follow-up did not. Paid ads are off. LinkedIn has been quiet through the month. Most interesting signal: ChatGPT.com now shows up as a traffic source on the site, an early sign HVOF is being surfaced by AI tools. Three moves that'd matter going into May: study what made April Email 2 open at 18% so the next send mirrors that pattern, resume the LinkedIn posting cadence (the page is still accruing small amounts of organic visibility even without new posts), and look at what's keeping visitors on the site longer even when total traffic dips.";
 
 async function main() {
-  console.log("Generating HVOF report...");
-  console.log("  Live fetch: GA4 + Typeform");
+  console.log("Generating HVOF April month-to-date report...");
+  console.log("  Live fetch: GA4 + Typeform (Apr 1 to Apr 24)");
   console.log("  Manual: Meta Ads, Facebook, Instagram, LinkedIn, Omnisend");
   console.log("");
 
   const result = await generateReport({
     businessSlug: "hudson-valley-office-furniture",
-    startDate: "2026-04-17",
-    endDate: "2026-04-24",
-    rangeLabel: "April 17 to April 24, 2026",
+    primaryRange: "30d",
     narrative,
     manualChannels,
+    businessProfile: {
+      logoUrl: "/HVOF-2025-logo.svg",
+      brandColor: "#F4B400",
+    },
   });
 
   console.log("✓ Report generated");
@@ -107,6 +101,17 @@ async function main() {
   console.log(`  Share Token:  ${result.shareToken}`);
   console.log(`  Share URL:    ${result.shareUrl}`);
   console.log(`  Local URL:    http://localhost:3000/reports/${result.shareToken}`);
+  console.log("");
+  console.log("Quick peek at live data pulled:");
+  console.log(
+    `  GA4 sessions:      ${result.snapshot.ga4?.sessions.current ?? "—"} (vs ${result.snapshot.ga4?.sessions.prior ?? "—"} prior)`,
+  );
+  console.log(
+    `  GA4 top source:    ${result.snapshot.ga4?.topSources[0]?.source ?? "—"} (${result.snapshot.ga4?.topSources[0]?.sessions ?? "—"} sessions)`,
+  );
+  console.log(
+    `  Typeform leads:    ${result.snapshot.typeform?.totalLeads.current ?? "—"} (vs ${result.snapshot.typeform?.totalLeads.prior ?? "—"} prior)`,
+  );
   console.log("");
 }
 

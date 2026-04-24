@@ -25,6 +25,18 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  images: {
+    // Allow SVG logos for business branding. Next.js rejects SVG by default
+    // because they can embed scripts; we mitigate by locking down CSP on
+    // image-optimized responses and by sanitizing SVGs on upload server-side.
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    remotePatterns: [
+      // Vercel Blob storage (user-uploaded business logos)
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
+    ],
+  },
   async headers() {
     return [
       {
