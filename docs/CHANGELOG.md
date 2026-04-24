@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.12.0 · 2026-04-23 · Live in-app data + Signal recommendations
+
+- Business dashboard at `/app/businesses/[slug]` now fetches live GA4 + Typeform snapshots server-side via the shared `fetchRangeData()` helper. HVOF's sessions, top source, top landing, session duration, and lead counts render on the at-a-glance cards with real numbers, not placeholders. Each card that backs a live integration gets a "Live" pulse badge.
+- Range toggle mirrors the public report. Active range comes from `?range=` query param (defaults to `30d`). `<ReportRangeTabs>` is reused — same keys, same tab shape, URL-synced, `useTransition` wrapped.
+- New `SignalRecommendations` async server component (`src/components/signal-recommendations.tsx`) sits under the cards grid. Calls Claude Sonnet 4.6 through `generateText` + `Output.object()` with a zod schema to return 2 or 3 prescriptive recommendations: title, rationale that cites specific numbers, expected outcome, and a priority label. Graceful fallback if the AI call fails.
+- Shared snapshot helper lifted out to `src/lib/reports/snapshot.ts`. `fetchRangeData(slug, key)` and `fetchAllRanges(slug)` are now reused by both the report generator and the in-app dashboard.
+- `src/lib/reports/recommendations.ts` holds the prompt, schema, and `generateRecommendations()` function. System prompt inherits Signal's voice rules (no em dashes, no emojis, no AI filler).
+- `scripts/test-recommendations.ts` exercises the full pipeline end-to-end from a tsx script (`dotenv -e .env.local -- tsx scripts/test-recommendations.ts`).
+- Report title dropped em dash: `${name} — Marketing report` is now `${name} marketing report`.
+- HANDOFF documents the Vercel AI Gateway credit card requirement. Without a card on the Vercel team, all model calls return 403 `customer_verification_required` and the Signal recommendations section will render its fallback message.
+
 ## v0.11.0 · 2026-04-23 · Range toggle on reports + SVG logo support
 
 - Report snapshot upgraded to v2 schema. `generateReport()` now fetches all four ranges (7d, 30d, 90d, 1y) in parallel and stores them under `snapshot.ranges[key]` with pre-computed `range` and `priorRange` date windows. `snapshot.primaryRange` picks the default tab.

@@ -6,29 +6,23 @@ import {
   businesses as seededBusinesses,
   type Business as SeededBusiness,
 } from "@/lib/businesses";
-import { fetchGA4Snapshot, type GA4Snapshot } from "@/lib/integrations/ga4";
 import {
-  fetchTypeformSnapshot,
-  type TypeformSnapshot,
-} from "@/lib/integrations/typeform";
+  fetchAllRanges,
+  RANGES,
+  type RangeData,
+  type RangeKey,
+} from "@/lib/reports/snapshot";
+import type { GA4Snapshot } from "@/lib/integrations/ga4";
+import type { TypeformSnapshot } from "@/lib/integrations/typeform";
 
-export type ReportRangeKey = "7d" | "30d" | "90d" | "1y";
+export type ReportRangeKey = RangeKey;
+export type ReportRangeData = RangeData;
 
-export const REPORT_RANGES: Array<{ key: ReportRangeKey; label: string; days: number }> = [
-  { key: "7d", label: "7 days", days: 7 },
-  { key: "30d", label: "30 days", days: 30 },
-  { key: "90d", label: "90 days", days: 90 },
-  { key: "1y", label: "1 year", days: 365 },
-];
-
-export type ReportRangeData = {
-  key: ReportRangeKey;
-  label: string;
-  range: { startDate: string; endDate: string };
-  priorRange: { startDate: string; endDate: string };
-  ga4?: GA4Snapshot;
-  typeform?: TypeformSnapshot;
-};
+export const REPORT_RANGES = RANGES.map((r) => ({
+  key: r.key,
+  label: r.label,
+  days: r.days,
+}));
 
 export type ManualMetric = {
   label: string;
@@ -135,82 +129,6 @@ async function ensureWorkspaceAndBusiness(slug: string) {
   return { workspace, business };
 }
 
-function toIsoDate(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
-
-function computeRangeDates(rangeKey: ReportRangeKey, referenceDate: Date) {
-  const cfg = REPORT_RANGES.find((r) => r.key === rangeKey);
-  if (!cfg) throw new Error(`Unknown range: ${rangeKey}`);
-
-  const endDate = new Date(referenceDate);
-  const startDate = new Date(endDate);
-  startDate.setDate(startDate.getDate() - (cfg.days - 1));
-
-  const priorEnd = new Date(startDate);
-  priorEnd.setDate(priorEnd.getDate() - 1);
-  const priorStart = new Date(priorEnd);
-  priorStart.setDate(priorStart.getDate() - (cfg.days - 1));
-
-  return {
-    range: { startDate: toIsoDate(startDate), endDate: toIsoDate(endDate) },
-    priorRange: {
-      startDate: toIsoDate(priorStart),
-      endDate: toIsoDate(priorEnd),
-    },
-  };
-}
-
-async function fetchRangeData(
-  businessSlug: string,
-  rangeKey: ReportRangeKey,
-  referenceDate: Date,
-): Promise<ReportRangeData> {
-  const cfg = REPORT_RANGES.find((r) => r.key === rangeKey)!;
-  const { range, priorRange } = computeRangeDates(rangeKey, referenceDate);
-
-  const data: ReportRangeData = {
-    key: rangeKey,
-    label: cfg.label,
-    range,
-    priorRange,
-  };
-
-  if (businessSlug === "hudson-valley-office-furniture") {
-    const tasks: Array<Promise<void>> = [];
-
-    const ga4PropertyId = process.env.HVOF_GA4_PROPERTY_ID;
-    if (ga4PropertyId) {
-      tasks.push(
-        fetchGA4Snapshot(ga4PropertyId, range.startDate, range.endDate)
-          .then((snap) => {
-            data.ga4 = snap;
-          })
-          .catch((err) => {
-            console.error(`[generate] GA4 ${rangeKey} failed`, err);
-          }),
-      );
-    }
-
-    const typeformFormId = process.env.HVOF_TYPEFORM_FORM_ID;
-    if (typeformFormId) {
-      tasks.push(
-        fetchTypeformSnapshot(typeformFormId, range.startDate, range.endDate)
-          .then((snap) => {
-            data.typeform = snap;
-          })
-          .catch((err) => {
-            console.error(`[generate] Typeform ${rangeKey} failed`, err);
-          }),
-      );
-    }
-
-    await Promise.all(tasks);
-  }
-
-  return data;
-}
-
 function generateShareToken(): string {
   return randomBytes(16).toString("hex");
 }
@@ -245,19 +163,7 @@ export async function generateReport(
 
   const referenceDate = input.referenceDate ?? new Date();
   const primaryRange: ReportRangeKey = input.primaryRange ?? "30d";
-
-  const rangeKeys = REPORT_RANGES.map((r) => r.key);
-  const rangeResults = await Promise.all(
-    rangeKeys.map((key) => fetchRangeData(input.businessSlug, key, referenceDate)),
-  );
-
-  const ranges = rangeKeys.reduce(
-    (acc, key, i) => {
-      acc[key] = rangeResults[i];
-      return acc;
-    },
-    {} as Record<ReportRangeKey, ReportRangeData>,
-  );
+  const ranges = await fetchAllRanges(input.businessSlug, referenceDate);
 
   const snapshot: ReportSnapshot = {
     version: 2,
@@ -284,7 +190,7 @@ export async function generateReport(
     .insert(reports)
     .values({
       businessId: business.id,
-      title: `${business.name} — Marketing report`,
+      title: `${business.name} marketing report`,
       range: primaryRange,
       periodStart: new Date(primary.range.startDate),
       periodEnd: new Date(primary.range.endDate),
@@ -314,3 +220,5 @@ export async function getReportByShareToken(
   if (!record) return null;
   return record.snapshot as ReportSnapshot;
 }
+
+export type { GA4Snapshot, TypeformSnapshot };

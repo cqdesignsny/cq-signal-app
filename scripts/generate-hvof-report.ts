@@ -102,15 +102,16 @@ async function main() {
   console.log(`  Share URL:    ${result.shareUrl}`);
   console.log(`  Local URL:    http://localhost:3000/reports/${result.shareToken}`);
   console.log("");
-  console.log("Quick peek at live data pulled:");
+  const primary = result.snapshot.ranges[result.snapshot.primaryRange];
+  console.log(`Quick peek at live data pulled (${result.snapshot.primaryRange}):`);
   console.log(
-    `  GA4 sessions:      ${result.snapshot.ga4?.sessions.current ?? "—"} (vs ${result.snapshot.ga4?.sessions.prior ?? "—"} prior)`,
+    `  GA4 sessions:      ${primary.ga4?.sessions.current ?? "—"} (vs ${primary.ga4?.sessions.prior ?? "—"} prior)`,
   );
   console.log(
-    `  GA4 top source:    ${result.snapshot.ga4?.topSources[0]?.source ?? "—"} (${result.snapshot.ga4?.topSources[0]?.sessions ?? "—"} sessions)`,
+    `  GA4 top source:    ${primary.ga4?.topSources[0]?.source ?? "—"} (${primary.ga4?.topSources[0]?.sessions ?? "—"} sessions)`,
   );
   console.log(
-    `  Typeform leads:    ${result.snapshot.typeform?.totalLeads.current ?? "—"} (vs ${result.snapshot.typeform?.totalLeads.prior ?? "—"} prior)`,
+    `  Typeform leads:    ${primary.typeform?.totalLeads.current ?? "—"} (vs ${primary.typeform?.totalLeads.prior ?? "—"} prior)`,
   );
   console.log("");
 }
