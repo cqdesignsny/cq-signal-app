@@ -1,5 +1,48 @@
 # Changelog
 
+## v0.14.0 · 2026-04-23 · Report aesthetic rework + dashboard upgrade + Google Ads + report history
+
+**Report aesthetic** — dropped the email-template look (dark gradient header, brand-red top stripe, dark slab footer, heavy black table headers, oversized red numbered chips). Public `/reports/[token]` now matches the app's premium editorial feel:
+
+- New header: editorial card with `bg-mesh-brand` gradient overlay, Instrument Serif business name, vertical eyebrow, optional logo on the right, soft brand-tinted period chip with pulse dot, "Prepared by Creative Quality Marketing" line.
+- Section nav: floating glass pill bar at the top, brand-tinted active state.
+- Section cards: rounded-2xl, soft border, subtle shadow with backdrop-blur. Section number rendered as a small ringed monospace badge instead of a giant chip.
+- Sub-cards inside grouped sections: lighter, source tag rendered as a discreet mono pill.
+- Data tables: muted upper-case mono headers (no dark backgrounds), alternating hover states.
+- Lead status badges: refined ring/pill treatment.
+- Recommendations list: cards with priority chips (high / medium / low), expected-outcome row separated by a hairline.
+- Footer: minimal — small CQ Signal lockup, attribution to Creative Quality Marketing, generated date, single-line confidential notice.
+- TopStripe retired (no-op stub kept so existing imports don't break).
+
+**Dashboard upgrade** at `/app/businesses/[slug]`:
+
+- **Create report** button promoted to a prominent brand-red primary CTA at the top-right of the header, with a loader state. Powered by a new Server Action (`createReportForBusiness`) that calls `generateReport()` server-side and redirects to the fresh share URL.
+- **Edit profile**, **Export for AI**, and **Share report** secondary actions moved to a row beneath the title so they don't compete with the new primary button.
+- **Signal recommendations move to the top**, above the at-a-glance grid. First thing you see is what to do, not what happened.
+- **Traffic Overview hero card** — Site Kit-style: hero number ("All Visitors"), delta vs prior, daily SVG sparkline, conic-gradient channel donut with brand-mapped colors (Direct, Organic Search, Paid Search, Email, etc.). Click-through to the GA4 channel page for the deeper breakdown.
+- **Channel cards now also pull from a manual-data overlay** when the API integration isn't wired yet. Cards backed by manual data get a "Manual" pill (muted), live cards keep their "Live" pulse badge.
+- **Report history** at the bottom of the dashboard — last 10 generated reports for that business with date, range, period, and click-through to the share URL. Snapshots are a moment-in-time record; the history is the audit trail of what was actually delivered.
+
+**Channel drill-ins** at `/app/businesses/[slug]/[channel]`:
+
+- **GA4** view (Google Analytics card click-through) now mirrors Google Site Kit: TrafficOverviewCard at the top, four KPI tiles (Sessions, Users, Avg session, Bounce rate), Top content table with pageviews + sessions, and a daily sessions trend chart.
+- **Typeform** view shows the lead list with name, contact (email or phone), the first text answer captured by the form, submitted date, and a status badge.
+- **Manual channels** (FB, IG, LinkedIn, Omnisend, Meta Ads, Google Ads, etc.) render their manual-overlay numbers as a hero metric + secondary stats, with notes from the operator and a "What you'll see here once X is fully wired" companion list.
+
+**Google Ads + Google Local Services Ads as first-class integrations:**
+
+- Added `google-ads` (already existed) and new `google-lsa` to the `Integration` enum.
+- HVOF gets `google-ads` in its integration list (the Site Kit screenshot Cesar shared shows ~17% of HVOF traffic comes from Paid Search). HVOF doesn't run Google LSA, so it's not in HVOF's list yet.
+- TZ Electric gets both `google-ads` and `google-lsa` (electrical contractor — LSA is the ideal channel).
+- Channel cards + channel detail entries for both, including the LSA-specific metrics (leads, cost per lead, response time, Google Guarantee status, reviews).
+- HVOF Google Ads card populated with manual data: $1,047 spend, 312 clicks, 8 conversions for the most recent month of record, with a note that the API integration is still coming.
+
+**Manual data overlay** — new `src/lib/manual-data.ts`. Per-business map of channel → manual values that the dashboard cards and channel drill-ins fall back to when no live data is available. HVOF is fully populated for FB, IG, LinkedIn, Omnisend, Meta Ads, Google Ads.
+
+**Server Action** `createReportForBusiness(formData)` at `src/app/app/businesses/[slug]/actions.ts`. Resolves Clerk session, builds the manual-channels list from the overlay, calls `generateReport()`, redirects to `/reports/[shareToken]`.
+
+**Report history component** `src/components/report-history.tsx` — server component that queries the `reports` table for the business's last 10 generated reports.
+
 ## v0.13.0 · 2026-04-23 · HVOF email-template design translated to the public report
 
 - Public `/reports/[token]` page rewritten to match the proven HVOF email-report design we built earlier (`hvof-weekly-report-SAMPLE.html`). Same section order (Summary, Traffic, Leads, Email, Ads, Social, Recommendations), same dark gradient header with CQ logo + month-to-date badge + client logo, same brand-red top stripe, same gold-accented executive summary with left rule, same conic-gradient channel donut + SVG sparkline trend, same dark-headed data tables, same numbered red-circle recommendations, same dark footer with the "Confidential — Prepared exclusively for [client]" line.

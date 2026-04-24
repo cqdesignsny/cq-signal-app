@@ -1,8 +1,7 @@
+// Retired: the heavy fixed-position brand stripe was an email-template trope.
+// The new editorial layout doesn't need it. Kept as a no-op so existing
+// imports don't break; safe to delete once the report page no longer
+// imports it.
 export function TopStripe() {
-  return (
-    <div
-      className="fixed left-0 right-0 top-0 z-50 h-1 bg-brand print:static"
-      aria-hidden
-    />
-  );
+  return null;
 }

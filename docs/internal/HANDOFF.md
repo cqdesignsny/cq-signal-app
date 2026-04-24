@@ -16,8 +16,8 @@ CQ Signal is a marketing reporting and analytics platform built AI-first. It giv
 
 ## Current state
 
-**Version:** v0.13.0 (HVOF email-template design translated into the public report; pending commit)
-**Last committed version:** v0.12.0 (live in-app data + Signal recommendations on the business dashboard)
+**Version:** v0.14.0 (report aesthetic rework + dashboard upgrade + Google Ads + report history; pending commit)
+**Last committed version:** v0.13.0 (HVOF email-template design translated into the public report)
 **Last updated:** 2026-04-23
 
 The app is a Next.js 16 App Router site deployed to Vercel. Pushed to GitHub `main` auto-deploys. Local dev is `pnpm dev` from the `cq-signal/` directory. Dev server listens at `http://localhost:3000`.
@@ -43,15 +43,16 @@ What's still hardcoded:
 
 ## In progress
 
-Nothing active. v0.13.0 changes are on disk, ready to commit.
+Nothing active. v0.14.0 changes are on disk, ready to commit.
 
 ## Immediate next task
 
-1. **Add a credit card to the Vercel team** so the AI Gateway stops returning 403. Without it, the Signal recommendations section on every report renders the empty-state fallback. Chat is also affected. Once the card lands, no code changes needed — calls just start succeeding.
-2. **Verify the public report renders cleanly** at the latest HVOF share URL. Open in a real browser; Signal can't run it locally without Cesar's session.
-3. **Wire the missing integrations** so the empty-state sub-cards in the Traffic section start populating: Search Console (impressions, clicks, top queries), GA4 audience extension (new vs returning + top cities), PageSpeed Insights (Core Web Vitals).
-4. **Wire the manual social/email/ads channels into real APIs** so the Email, Ads, and Organic Social sections stop relying on `manualChannels` data baked into `scripts/generate-hvof-report.ts`. Same pattern as GA4/Typeform — helper at `src/lib/integrations/<name>.ts` with a `fetch<Name>Snapshot()` returning a serializable shape with period-over-period delta. Wire into `resolveCreds()` in `snapshot.ts`.
-5. Later: Vercel Blob for logo uploads, PDF export via headless Chromium (or use the existing print button + browser save-to-PDF), Resend for email delivery, MCP server, per-workspace REST API keys.
+1. **Add a credit card to the Vercel team** so the AI Gateway stops returning 403. Without it, the Signal recommendations on the dashboard and on every report render the empty-state fallback. Chat is also affected. Once the card lands, no code changes needed.
+2. **Verify the new dashboard + report aesthetic** in a real signed-in browser session. Look for: Create report button red and prominent, recommendations on top, Traffic Overview hero with donut + sparkline, manual-data cards (Google Ads, Meta, FB, IG, LinkedIn, Omnisend) showing real values for HVOF, Report history at the bottom. On the report itself: editorial header (no dark slab), floating section nav pill, rounded cards, lighter tables, refined recommendations cards.
+3. **Wire Google Ads API** as the next live integration. HVOF runs Google Ads and ~17% of traffic comes from Paid Search. Build `src/lib/integrations/google-ads.ts` with `fetchGoogleAdsSnapshot(customerId, startDate, endDate)`. Auth via the existing Google OAuth refresh token (extend the scope to include `https://www.googleapis.com/auth/adwords`). Wire into `resolveCreds()` in `snapshot.ts` so the manual overlay can be deleted.
+4. **Wire Search Console next** — same Google OAuth refresh token, scope `https://www.googleapis.com/auth/webmasters.readonly`. Populate the empty-state sub-cards on the report (Search Performance + Top Search Queries).
+5. Then Meta (FB Ads + FB Pages + IG Graph), then LinkedIn, then Omnisend API. Each follows the same pattern.
+6. Later: PageSpeed Insights (Core Web Vitals), GA4 audience extension (new vs returning + cities for the Site Kit-style audience comparison), Vercel Blob logo upload, Resend email delivery, MCP server, REST API keys.
 
 ## Environment variables
 
@@ -98,7 +99,8 @@ Version history in [../CHANGELOG.md](../CHANGELOG.md). High level:
 - **v0.10.0.** Report system shipped. `generateReport()` fetches GA4 + Typeform + manual channels, stores a versioned snapshot in the `reports` table, generates a 32-char hex share token, returns share URL. Public `/reports/[token]` page renders the snapshot. `scripts/generate-hvof-report.ts` triggers the pipeline offline via `pnpm generate:hvof`. HVOF's first real April MTD report generated and shared.
 - **v0.11.0.** Report snapshot upgraded to v2 schema with `ranges: Record<ReportRangeKey, ReportRangeData>` holding all four (7d / 30d / 90d / 1y) pre-fetched ranges. New client component `<ReportRangeTabs>` mirrors the dashboard's tabs on the public report. Switches via `?range=` query param wrapped in `useTransition` + `router.push`. Manual channels render regardless of range. Business logo now supports SVG (via `dangerouslyAllowSVG` with CSP sandbox on image-optimized responses, and we render business logos as plain `<img>` to avoid the optimizer). `businessProfile` field on `GenerateReportInput` persists `logoUrl` and `brandColor` onto the `businesses` row so reports inherit them.
 - **v0.12.0.** Business dashboard at `/app/businesses/[slug]` now pulls live GA4 + Typeform snapshots server-side via `fetchRangeData()`. Cards show real sessions, top source, top landing, avg session duration, and lead counts with period-over-period deltas. Live-data cards get a "Live" pulse badge. Range toggle reuses `<ReportRangeTabs>` and is URL-synced. New `<SignalRecommendations>` async server component calls Claude via `generateText` + `Output.object()` with a zod schema to return 2 or 3 prescriptive, data-grounded action items with priority labels. Shared snapshot helper extracted to `src/lib/reports/snapshot.ts` so the report generator and the dashboard share the exact same fetch logic.
-- **v0.13.0** (pending commit). Public `/reports/[token]` rewritten to match the proven HVOF email-report design (`hvof-weekly-report-SAMPLE.html` from the Dropbox archive). Same section order: Summary, Traffic, Leads, Email, Ads, Social, Recommendations. Same dark gradient header with CQ logo + month-to-date badge + client logo. Same brand-red top stripe. Same gold-rule Executive Summary. Same conic-gradient channel donut + SVG sparkline. Same dark-headed data tables. Same numbered red-circle recommendations. Same dark footer with confidential strapline. New `src/components/report/` folder with focused, reusable primitives. GA4 snapshot extended with `channelBreakdown` (sessionDefaultChannelGroup) and `dailySessions` (per-day series) so the donut and trend chart have real data. Empty states for sections that need integrations not yet wired (Search Console, Web Vitals, New vs Returning + cities). Reuses existing `--brand` and `--signal` tokens.
+- **v0.13.0.** Public `/reports/[token]` rewritten to match the proven HVOF email-report design (`hvof-weekly-report-SAMPLE.html` from the Dropbox archive). Same section order. New `src/components/report/` primitive library. GA4 snapshot extended with `channelBreakdown` and `dailySessions`. Empty states for sections needing integrations not yet wired.
+- **v0.14.0** (pending commit). Two big moves. (1) Report aesthetic dropped the email-template look (dark gradient header, brand-red top stripe, dark slab footer, heavy black table headers) for the app's premium editorial feel: editorial header with `bg-mesh-brand` overlay + Instrument Serif business name + soft brand-tinted period chip, floating glass section nav, rounded-2xl cards with backdrop-blur, muted mono table headers, refined recommendations cards with priority chips. (2) Dashboard upgrade: prominent brand-red **Create report** button (Server Action `createReportForBusiness`) at the top, secondary actions moved underneath, Signal recommendations promoted to the top, new **TrafficOverviewCard** Site Kit-style hero with sparkline + channel donut + click-through to GA4, manual-data overlay (`src/lib/manual-data.ts`) populating HVOF's FB / IG / LinkedIn / Omnisend / Meta / Google Ads cards with a "Manual" pill, and **Report history** at the bottom listing the last 10 generated reports for the business with click-through. Channel drill-ins: GA4 mirrors Google Site Kit (TrafficOverviewCard + KPI tiles + Top content table + sessions trend), Typeform shows lead list with name + contact + first text answer + status. Google Ads + Google LSA added as first-class integrations; HVOF gets Google Ads (manual data: $1,047 spend, 312 clicks, 8 conversions); TZ Electric gets both google-ads and google-lsa.
 
 ## Key decisions and constraints
 
@@ -163,7 +165,12 @@ pnpm generate:hvof
 - `src/lib/reports/recommendations.ts` — Claude-powered `generateRecommendations()` returning 2 or 3 prescriptive action items with zod-typed output.
 - `src/lib/reports/generate.ts` — report pipeline (fetch via shared helper + snapshot v2 + persist + share token).
 - `src/app/reports/[token]/page.tsx` — public report page, range-aware via `?range=`. Composes `src/components/report/*` primitives in the HVOF email-template section order.
-- `src/components/report/` — full primitive library for the report page (header, section nav, section card, sub-card, metric grid, hero metric, channel donut, trend chart, data table, lead status badge, campaign highlight, social split, core web vitals, recommendations list, footer, empty state, print button).
+- `src/components/report/` — full primitive library for the report page (header, section nav, section card, sub-card, metric grid, hero metric, channel donut, trend chart, data table, lead status badge, campaign highlight, social split, core web vitals, recommendations list, footer, empty state, print button). All restyled in v0.14.0 to match the app's editorial feel.
+- `src/components/traffic-overview-card.tsx` — Site Kit-style hero. All Visitors number + delta + sparkline + channel donut. Used on the business dashboard and the GA4 channel drill-in.
+- `src/components/create-report-button.tsx` (client) — red primary button that posts to a Server Action.
+- `src/components/report-history.tsx` — server component that lists the last 10 generated reports for a business.
+- `src/lib/manual-data.ts` — per-business overlay of channel → manual values; fallback for cards before the API integration ships.
+- `src/app/app/businesses/[slug]/actions.ts` — `createReportForBusiness` Server Action.
 - `src/app/app/businesses/[slug]/page.tsx` — signed-in business dashboard. Fetches live data each render.
 - `src/components/report-range-tabs.tsx` — the URL-synced toggle, reused on report page and business dashboard.
 - `src/components/signal-recommendations.tsx` — async server component that renders Claude's recommendations with priority badges and expected-outcome lines.

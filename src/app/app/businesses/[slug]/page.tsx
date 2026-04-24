@@ -7,6 +7,7 @@ import {
   getBusiness,
   type Integration,
 } from "@/lib/businesses";
+import { getManualCard } from "@/lib/manual-data";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,12 +21,16 @@ import { ExportForAiMenu } from "@/components/export-for-ai-menu";
 import { ShareReportMenu } from "@/components/share-report-menu";
 import { ReportRangeTabs } from "@/components/report-range-tabs";
 import { SignalRecommendations } from "@/components/signal-recommendations";
+import { TrafficOverviewCard } from "@/components/traffic-overview-card";
+import { CreateReportButton } from "@/components/create-report-button";
+import { ReportHistory } from "@/components/report-history";
 import {
   fetchRangeData,
   RANGES,
   type RangeData,
   type RangeKey,
 } from "@/lib/reports/snapshot";
+import { createReportForBusiness } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -88,7 +93,8 @@ function liveValuesFor(
         },
         {
           label: "Top landing",
-          value: topLanding.length > 18 ? topLanding.slice(0, 16) + "…" : topLanding,
+          value:
+            topLanding.length > 18 ? topLanding.slice(0, 16) + "…" : topLanding,
         },
       ],
       note: `Avg session ${formatDuration(g.avgSessionDurationSec.current)}`,
@@ -118,6 +124,21 @@ function liveValuesFor(
   return null;
 }
 
+function manualValuesFor(
+  slug: string,
+  key: Integration,
+): LiveCardValues | null {
+  const m = getManualCard(slug, key);
+  if (!m) return null;
+  return {
+    primary: { label: m.primary.label, value: m.primary.value },
+    secondary: m.secondary
+      .slice(0, 3)
+      .map((s) => ({ label: s.label, value: s.value })),
+    note: m.primary.note,
+  };
+}
+
 function resolveRangeKey(value: unknown): RangeKey {
   if (typeof value === "string" && RANGE_KEYS.includes(value as RangeKey)) {
     return value as RangeKey;
@@ -135,9 +156,11 @@ export default async function BusinessPage({ params, searchParams }: Props) {
   const rangeCfg = RANGES.find((r) => r.key === activeRange)!;
   const rangeData = await fetchRangeData(slug, activeRange);
 
+  const otherIntegrations = business.integrations.filter((i) => i !== "ga4");
+
   return (
     <div className="mx-auto grid max-w-[1600px] gap-10 xl:grid-cols-[1fr_400px]">
-      <div className="min-w-0 space-y-12">
+      <div className="min-w-0 space-y-10">
         <header className="space-y-5">
           <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
             Business · {business.vertical}
@@ -147,24 +170,49 @@ export default async function BusinessPage({ params, searchParams }: Props) {
               {business.name}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
-              <Button asChild variant="outline" size="sm" className="gap-1.5">
-                <Link href={`/app/businesses/${business.slug}/profile`}>
-                  <Settings2 className="size-3.5" />
-                  Edit profile
-                </Link>
-              </Button>
-              <ExportForAiMenu
-                businessSlug={business.slug}
-                businessName={business.name}
+              <CreateReportButton
+                action={createReportForBusiness}
+                slug={business.slug}
               />
-              <ShareReportMenu businessName={business.name} />
             </div>
           </div>
           <p className="max-w-2xl text-base text-muted-foreground md:text-lg">
             {business.tagline}
           </p>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Button asChild variant="outline" size="sm" className="gap-1.5">
+              <Link href={`/app/businesses/${business.slug}/profile`}>
+                <Settings2 className="size-3.5" />
+                Edit profile
+              </Link>
+            </Button>
+            <ExportForAiMenu
+              businessSlug={business.slug}
+              businessName={business.name}
+            />
+            <ShareReportMenu businessName={business.name} />
+          </div>
         </header>
 
+        {/* 1. Recommendations sit above everything else, so the first thing
+            you see is what to do, not what happened. */}
+        <SignalRecommendations
+          businessName={business.name}
+          vertical={business.vertical}
+          tagline={business.tagline}
+          rangeLabel={rangeCfg.label}
+          range={rangeData}
+        />
+
+        {/* 2. Traffic overview — donut + sparkline + delta. Click-through
+            to GA4 channel page for deeper Site Kit-style breakdown. */}
+        <TrafficOverviewCard
+          businessSlug={business.slug}
+          ga4={rangeData.ga4}
+          rangeLabel={rangeCfg.label}
+        />
+
+        {/* 3. The rest of the channels at a glance. */}
         <section className="space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -174,19 +222,26 @@ export default async function BusinessPage({ params, searchParams }: Props) {
               <p className="mt-1 text-sm text-muted-foreground">
                 {rangeData.range.startDate} to {rangeData.range.endDate}
                 <span className="mx-2 opacity-40">·</span>
-                vs {rangeData.priorRange.startDate} to {rangeData.priorRange.endDate}
+                vs {rangeData.priorRange.startDate} to{" "}
+                {rangeData.priorRange.endDate}
               </p>
             </div>
-            <ReportRangeTabs activeRange={activeRange} defaultRange={DEFAULT_RANGE} />
+            <ReportRangeTabs
+              activeRange={activeRange}
+              defaultRange={DEFAULT_RANGE}
+            />
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {business.integrations.map((key) => {
+            {otherIntegrations.map((key) => {
               const config = channelCards[key];
               if (!config) return null;
               const live = liveValuesFor(key, rangeData);
-              const primary = live?.primary ?? config.primary;
-              const secondary = live?.secondary ?? config.secondary;
+              const manual = !live ? manualValuesFor(business.slug, key) : null;
+              const overlay = live ?? manual;
+              const primary = overlay?.primary ?? config.primary;
+              const secondary = overlay?.secondary ?? config.secondary;
               const isLive = Boolean(live);
+              const isManual = !isLive && Boolean(manual);
               return (
                 <Link
                   key={key}
@@ -198,6 +253,10 @@ export default async function BusinessPage({ params, searchParams }: Props) {
                       <span className="pointer-events-none absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-brand ring-1 ring-inset ring-brand/30">
                         <span className="size-1.5 rounded-full bg-brand" />
                         Live
+                      </span>
+                    ) : isManual ? (
+                      <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted-foreground ring-1 ring-inset ring-border">
+                        Manual
                       </span>
                     ) : null}
                     <CardHeader className="gap-2">
@@ -232,9 +291,9 @@ export default async function BusinessPage({ params, searchParams }: Props) {
                           </div>
                         ))}
                       </div>
-                      {live?.note ? (
+                      {overlay?.note ? (
                         <p className="text-[11px] italic text-muted-foreground/80">
-                          {live.note}
+                          {overlay.note}
                         </p>
                       ) : null}
                     </CardContent>
@@ -245,13 +304,8 @@ export default async function BusinessPage({ params, searchParams }: Props) {
           </div>
         </section>
 
-        <SignalRecommendations
-          businessName={business.name}
-          vertical={business.vertical}
-          tagline={business.tagline}
-          rangeLabel={rangeCfg.label}
-          range={rangeData}
-        />
+        {/* 4. Past reports for this business. */}
+        <ReportHistory slug={business.slug} />
       </div>
 
       <aside className="xl:sticky xl:top-20 xl:h-[calc(100vh-6rem)]">

@@ -21,19 +21,17 @@ export function DataTable<T>({ columns, rows, emptyState }: Props<T>) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="mt-4 w-full border-collapse text-[14px]">
+    <div className="-mx-2 overflow-x-auto">
+      <table className="w-full border-collapse text-sm">
         <thead>
-          <tr>
-            {columns.map((col, i) => (
+          <tr className="border-b border-border/60">
+            {columns.map((col) => (
               <th
                 key={col.key}
                 style={{ width: col.width }}
                 className={cn(
-                  "bg-neutral-900 px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white dark:bg-neutral-800",
+                  "px-3 py-3 font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground",
                   col.align === "right" ? "text-right" : "text-left",
-                  i === 0 && "rounded-tl-md",
-                  i === columns.length - 1 && "rounded-tr-md",
                 )}
               >
                 {col.header}
@@ -45,15 +43,15 @@ export function DataTable<T>({ columns, rows, emptyState }: Props<T>) {
           {rows.map((row, rowIndex) => (
             <tr
               key={rowIndex}
-              className="border-b border-border/40 last:border-b-0 even:bg-muted/30"
+              className="border-b border-border/40 transition-colors last:border-b-0 hover:bg-muted/30"
             >
               {columns.map((col, colIndex) => (
                 <td
                   key={col.key}
                   className={cn(
-                    "px-3.5 py-2.5 text-muted-foreground",
+                    "px-3 py-3 align-top text-muted-foreground",
                     col.align === "right" ? "text-right" : "text-left",
-                    colIndex === 0 && "font-semibold text-foreground",
+                    colIndex === 0 && "font-medium text-foreground",
                   )}
                 >
                   {col.render(row, rowIndex)}

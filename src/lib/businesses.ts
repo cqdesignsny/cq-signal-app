@@ -1,6 +1,7 @@
 export type Integration =
   | "ga4"
   | "google-ads"
+  | "google-lsa"
   | "meta-ads"
   | "facebook"
   | "instagram"
@@ -18,6 +19,7 @@ export type Integration =
 export const integrationLabels: Record<Integration, string> = {
   "ga4": "Google Analytics",
   "google-ads": "Google Ads",
+  "google-lsa": "Google Local Services Ads",
   "meta-ads": "Meta Ads",
   "facebook": "Facebook",
   "instagram": "Instagram",
@@ -51,6 +53,7 @@ export const businesses: Business[] = [
     vertical: "Commercial B2B",
     integrations: [
       "ga4",
+      "google-ads",
       "meta-ads",
       "facebook",
       "instagram",
@@ -65,7 +68,7 @@ export const businesses: Business[] = [
     shortName: "TZ",
     tagline: "Electrical contractor",
     vertical: "Home services",
-    integrations: ["ga4", "meta-ads", "google-ads", "linkedin", "housecall-pro"],
+    integrations: ["ga4", "meta-ads", "google-ads", "google-lsa", "linkedin", "housecall-pro"],
   },
   {
     slug: "level-aesthetics",
@@ -119,11 +122,21 @@ export const channelCards: Record<Integration, ChannelConfig> = {
   "google-ads": {
     label: "Google Ads",
     source: "Google Ads",
-    sourceDescription: "Paid search ads",
+    sourceDescription: "Paid search + display ads",
     primary: { label: "Ad spend", value: "$—" },
     secondary: [
-      { label: "CPC", value: "$—" },
-      { label: "CTR", value: "—%" },
+      { label: "Clicks", value: "—" },
+      { label: "Cost per conversion", value: "$—" },
+    ],
+  },
+  "google-lsa": {
+    label: "Local Services Ads",
+    source: "Google LSA",
+    sourceDescription: "Pay-per-lead local services ads",
+    primary: { label: "Leads", value: "—" },
+    secondary: [
+      { label: "Cost per lead", value: "$—" },
+      { label: "Avg. response", value: "—" },
     ],
   },
   "meta-ads": {
@@ -284,6 +297,17 @@ export const channelDetails: Record<
       { title: "Top campaigns", description: "Best performing campaigns by conversion volume and CPA." },
       { title: "Keyword performance", description: "Which keywords drive conversions and at what cost." },
       { title: "Ad copy + creative", description: "Which ads get clicked the most." },
+    ],
+  },
+  "google-lsa": {
+    title: "Google Local Services Ads",
+    description: "Pay-per-lead local ads across Google's verified-pro program. Leads, cost per lead, response time, and review impact.",
+    sections: [
+      { title: "Leads over time", description: "Daily lead volume and the channels they come from (call vs. message)." },
+      { title: "Cost per lead", description: "Spend efficiency by service category and geography." },
+      { title: "Lead quality", description: "Booked vs. unqualified, with reasons when known." },
+      { title: "Response time", description: "How fast you reply, and how that correlates with booking rate." },
+      { title: "Reviews + Google Guarantee status", description: "Star count, recent reviews, and verification status that gates ad eligibility." },
     ],
   },
   "meta-ads": {

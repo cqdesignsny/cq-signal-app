@@ -1,10 +1,10 @@
-import Image from "next/image";
-
 type Props = {
   business: {
     name: string;
     logoUrl?: string | null;
     shortName?: string | null;
+    tagline?: string | null;
+    vertical?: string | null;
   };
   periodLabel: string;
   reportTitle?: string;
@@ -13,52 +13,50 @@ type Props = {
 export function ReportHeader({
   business,
   periodLabel,
-  reportTitle = "Marketing Report",
+  reportTitle = "Marketing report",
 }: Props) {
   return (
-    <header className="relative mb-7 overflow-hidden rounded-b-xl bg-gradient-to-br from-neutral-900 to-neutral-800 px-9 pb-9 pt-8 shadow-lg dark:from-neutral-950 dark:to-neutral-900">
-      <div
-        className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-brand via-signal to-brand"
-        aria-hidden
-      />
+    <header className="relative mb-10 overflow-hidden rounded-2xl border border-border/60 bg-card/60 px-7 pb-9 pt-9 shadow-sm backdrop-blur md:px-10 md:pt-11">
+      <div className="absolute inset-0 -z-10 bg-mesh-brand opacity-60" aria-hidden />
 
-      <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Image
-            src="/cq-signal-logo-dark.png"
-            alt="CQ Signal"
-            width={140}
-            height={36}
-            className="h-9 w-auto opacity-95"
-          />
+      <div className="flex flex-wrap items-start justify-between gap-5">
+        <div className="min-w-0 flex-1">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+            {reportTitle}
+            {business.vertical ? (
+              <span className="ml-2 normal-case tracking-normal text-muted-foreground/70">
+                · {business.vertical}
+              </span>
+            ) : null}
+          </p>
+          <h1 className="mt-3 break-words font-display text-4xl tracking-tight md:text-6xl">
+            {business.name}
+          </h1>
+          {business.tagline ? (
+            <p className="mt-3 max-w-xl text-base text-muted-foreground md:text-lg">
+              {business.tagline}
+            </p>
+          ) : null}
         </div>
-        <span className="rounded-full border border-brand/30 bg-brand/15 px-4 py-1.5 text-xs font-semibold tracking-wide text-white">
-          {periodLabel}
-        </span>
-      </div>
 
-      <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
-          {reportTitle}
-        </h1>
-        <p className="mt-2 text-base font-medium text-signal">
-          Prepared for {business.name}
-        </p>
-      </div>
-
-      <div className="mt-5 text-center">
         {business.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={business.logoUrl}
             alt={business.name}
-            className="inline-block h-11 w-auto object-contain"
+            className="h-14 w-auto max-w-[180px] shrink-0 object-contain object-right"
           />
-        ) : (
-          <span className="inline-block rounded-md border border-signal bg-neutral-900 px-5 py-2 text-sm font-bold tracking-wide text-signal">
-            {business.shortName ?? business.name}
-          </span>
-        )}
+        ) : null}
+      </div>
+
+      <div className="mt-7 flex flex-wrap items-center gap-3 border-t border-border/60 pt-5">
+        <span className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1 text-xs font-medium text-brand">
+          <span className="size-1.5 rounded-full bg-brand" />
+          {periodLabel}
+        </span>
+        <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground/80">
+          Prepared by Creative Quality Marketing
+        </span>
       </div>
     </header>
   );

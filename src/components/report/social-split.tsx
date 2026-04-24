@@ -7,6 +7,7 @@ type PlatformProps = {
   name: string;
   iconLabel: string;
   iconClassName: string;
+  handle?: string;
   metrics: SocialMetric[];
   bestPost?: { label: string; value: string };
   notes?: string;
@@ -16,48 +17,58 @@ export function SocialPlatform({
   name,
   iconLabel,
   iconClassName,
+  handle,
   metrics,
   bestPost,
   notes,
 }: PlatformProps) {
   return (
-    <div className="border-l-[3px] border-signal pl-5">
-      <h3 className="mb-3.5 flex items-center gap-2 text-sm font-bold text-foreground">
+    <div className="rounded-2xl border border-border/60 bg-card/60 p-6 shadow-sm">
+      <div className="mb-4 flex items-center gap-3">
         <span
           className={cn(
-            "inline-flex size-6 items-center justify-center rounded-md text-[10px] font-extrabold text-white",
+            "inline-flex size-8 items-center justify-center rounded-lg text-[11px] font-semibold text-white shadow-sm",
             iconClassName,
           )}
         >
           {iconLabel}
         </span>
-        {name}
-      </h3>
+        <div className="min-w-0">
+          <h3 className="font-display text-lg leading-tight tracking-tight">
+            {name}
+          </h3>
+          {handle ? (
+            <p className="font-mono text-[11px] text-muted-foreground">
+              {handle}
+            </p>
+          ) : null}
+        </div>
+      </div>
       <div className="space-y-0">
         {metrics.map((m) => (
           <div
             key={m.label}
-            className="flex items-center justify-between border-b border-border/40 py-1.5 text-sm last:border-b-0"
+            className="flex items-center justify-between border-b border-border/40 py-2 text-sm last:border-b-0"
           >
-            <span className="font-medium text-muted-foreground">{m.label}</span>
-            <span className="mono-nums font-bold text-foreground">
+            <span className="text-muted-foreground">{m.label}</span>
+            <span className="mono-nums font-semibold text-foreground">
               {m.value}
             </span>
           </div>
         ))}
       </div>
       {bestPost ? (
-        <div className="mt-3 rounded-md border border-signal bg-muted/30 px-3.5 py-3">
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-signal-foreground dark:text-signal">
+        <div className="mt-4 rounded-lg border border-signal/40 bg-signal/10 px-3.5 py-3">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             {bestPost.label}
           </p>
-          <p className="text-sm font-semibold text-foreground">
+          <p className="mt-1 text-sm font-medium text-foreground">
             {bestPost.value}
           </p>
         </div>
       ) : null}
       {notes ? (
-        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
           {notes}
         </p>
       ) : null}
@@ -68,7 +79,7 @@ export function SocialPlatform({
 type SplitProps = { children: ReactNode };
 
 export function SocialSplit({ children }: SplitProps) {
-  return <div className="grid gap-6 md:grid-cols-2">{children}</div>;
+  return <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{children}</div>;
 }
 
 export const PLATFORM_STYLES = {

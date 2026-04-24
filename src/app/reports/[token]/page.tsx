@@ -12,7 +12,6 @@ import {
   type Recommendation,
 } from "@/lib/reports/recommendations";
 import { ReportRangeTabs } from "@/components/report-range-tabs";
-import { TopStripe } from "@/components/report/top-stripe";
 import { ReportHeader } from "@/components/report/report-header";
 import { SectionNav, type SectionNavItem } from "@/components/report/section-nav";
 import { SectionCard } from "@/components/report/section-card";
@@ -215,31 +214,31 @@ async function ReportView({
   }
 
   return (
-    <>
-      <TopStripe />
-      <main className="mx-auto max-w-[900px] px-4 pb-16 pt-2 md:px-4">
-        <ReportHeader
-          business={{
-            name: business.name,
-            logoUrl: business.logoUrl,
-            shortName: business.shortName ?? business.name,
-          }}
-          periodLabel={periodBadge(activeRange, rangeData.range.endDate)}
-          reportTitle="Marketing Report"
-        />
+    <main className="mx-auto max-w-[960px] px-4 pb-16 pt-8 md:px-6 md:pt-12">
+      <ReportHeader
+        business={{
+          name: business.name,
+          logoUrl: business.logoUrl,
+          shortName: business.shortName ?? business.name,
+          tagline: business.tagline,
+          vertical: business.vertical,
+        }}
+        periodLabel={periodBadge(activeRange, rangeData.range.endDate)}
+        reportTitle="Marketing report"
+      />
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-1 print:hidden">
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span className="font-mono uppercase tracking-wider">View range</span>
-            <ReportRangeTabs
-              activeRange={activeRange}
-              defaultRange={snapshot.primaryRange}
-            />
-          </div>
-          <PrintButton />
+      <div className="mb-7 flex flex-wrap items-center justify-between gap-3 px-1 print:hidden">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span className="font-mono uppercase tracking-widest">View range</span>
+          <ReportRangeTabs
+            activeRange={activeRange}
+            defaultRange={snapshot.primaryRange}
+          />
         </div>
+        <PrintButton />
+      </div>
 
-        <SectionNav items={navItems} />
+      <SectionNav items={navItems} />
 
         {/* 1. Executive Summary */}
         <SectionCard
@@ -358,17 +357,17 @@ async function ReportView({
                 title: r.title,
                 body: r.rationale,
                 expected: r.expected,
+                priority: r.priority,
               }))}
             />
           )}
         </SectionCard>
 
-        <ReportFooter
-          businessName={business.name}
-          generatedAt={snapshot.generatedAt}
-        />
-      </main>
-    </>
+      <ReportFooter
+        businessName={business.name}
+        generatedAt={snapshot.generatedAt}
+      />
+    </main>
   );
 }
 
